@@ -449,11 +449,27 @@ const Admin = () => {
                   <TableRow key={b.id}>
                     <TableCell className="font-medium">{b.name}</TableCell>
                     <TableCell>{b.neighborhood ?? "—"}</TableCell>
-                    <TableCell>{b.composite_score != null ? Number(b.composite_score).toFixed(2) : "—"}</TableCell>
+                    <TableCell>{b.composite_score != null ? Number(b.composite_score).toFixed(1) : "—"}</TableCell>
                     <TableCell>{b.status}</TableCell>
                     <TableCell className="text-right space-x-2">
                       <Button size="sm" variant="outline" onClick={() => startEdit(b)}>Edit</Button>
-                      <Button size="sm" variant="destructive" onClick={() => handleDelete(b.id)}>Delete</Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button size="sm" variant="destructive">Delete</Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete this building?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This will permanently delete "{b.name}" and its scores. This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleDelete(b.id)}>Delete</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </TableCell>
                   </TableRow>
                 ))}
