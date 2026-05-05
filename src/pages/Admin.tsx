@@ -139,6 +139,10 @@ const Admin = () => {
     if (isAdmin) loadBuildings();
   }, [isAdmin]);
 
+  useEffect(() => {
+    if (authChecked && !isAdmin) navigate("/");
+  }, [authChecked, isAdmin, navigate]);
+
   // Auto-generate slug from name unless user edited it
   useEffect(() => {
     if (!slugTouched) {
