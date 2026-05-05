@@ -272,13 +272,12 @@ const Admin = () => {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
-        <main className="container py-16">Loading…</main>
+        <Spinner />
       </div>
     );
   }
 
   if (!isAdmin) {
-    navigate("/");
     return null;
   }
 
