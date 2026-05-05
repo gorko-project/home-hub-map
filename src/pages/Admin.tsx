@@ -25,6 +25,18 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { slugify, computeComposite } from "@/lib/slug";
+import { Spinner } from "@/components/Spinner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 type BuildingRow = {
   id: string;
@@ -127,6 +139,10 @@ const Admin = () => {
     if (isAdmin) loadBuildings();
   }, [isAdmin]);
 
+  useEffect(() => {
+    if (authChecked && !isAdmin) navigate("/");
+  }, [authChecked, isAdmin, navigate]);
+
   // Auto-generate slug from name unless user edited it
   useEffect(() => {
     if (!slugTouched) {
@@ -135,16 +151,6 @@ const Admin = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form.name]);
 
-  const becomeAdmin = async () => {
-    if (!userId) return;
-    const { error } = await supabase.from("user_roles").insert({ user_id: userId, role: "admin" });
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
-    toast.success("You are now an admin");
-    setIsAdmin(true);
-  };
 
   const handlePhotoUpload = async (file: File) => {
     setUploading(true);
@@ -207,7 +213,6 @@ const Admin = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Delete this building?")) return;
     await supabase.from("building_scores").delete().eq("building_id", id);
     const { error } = await supabase.from("buildings").delete().eq("id", id);
     if (error) {
@@ -268,7 +273,7 @@ const Admin = () => {
         if (error) throw error;
       }
 
-      toast.success(editingId ? "Building updated" : "Building created");
+      toast.success("Building saved!");
       resetForm();
       loadBuildings();
     } catch (err: any) {
@@ -282,28 +287,13 @@ const Admin = () => {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
-        <main className="container py-16">Loading…</main>
+        <Spinner />
       </div>
     );
   }
 
   if (!isAdmin) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Navbar />
-        <main className="container max-w-md py-16 space-y-4">
-          <h1 className="text-2xl font-bold">Admin access required</h1>
-          <p className="text-muted-foreground">
-            Your account does not have the admin role. If you are the project owner, click below to grant
-            yourself admin access.
-          </p>
-          <Button onClick={becomeAdmin}>Grant me admin access</Button>
-          <Button variant="outline" onClick={() => supabase.auth.signOut().then(() => navigate("/auth"))}>
-            Sign out
-          </Button>
-        </main>
-      </div>
-    );
+    return null;
   }
 
   const ScoreSlider = ({
@@ -422,7 +412,7 @@ const Admin = () => {
 
               <div className="md:col-span-2 flex items-center justify-between rounded-lg bg-muted p-4">
                 <span className="text-sm">Composite score</span>
-                <span className="text-2xl font-bold">{composite.toFixed(2)}</span>
+                <span className="text-2xl font-bold">{composite.toFixed(1)}</span>
               </div>
 
               <div className="md:col-span-2 flex gap-2">
@@ -459,11 +449,27 @@ const Admin = () => {
                   <TableRow key={b.id}>
                     <TableCell className="font-medium">{b.name}</TableCell>
                     <TableCell>{b.neighborhood ?? "—"}</TableCell>
-                    <TableCell>{b.composite_score != null ? Number(b.composite_score).toFixed(2) : "—"}</TableCell>
+                    <TableCell>{b.composite_score != null ? Number(b.composite_score).toFixed(1) : "—"}</TableCell>
                     <TableCell>{b.status}</TableCell>
                     <TableCell className="text-right space-x-2">
                       <Button size="sm" variant="outline" onClick={() => startEdit(b)}>Edit</Button>
-                      <Button size="sm" variant="destructive" onClick={() => handleDelete(b.id)}>Delete</Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button size="sm" variant="destructive">Delete</Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete this building?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This will permanently delete "{b.name}" and its scores. This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleDelete(b.id)}>Delete</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </TableCell>
                   </TableRow>
                 ))}

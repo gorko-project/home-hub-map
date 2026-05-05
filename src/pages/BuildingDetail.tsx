@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/Spinner";
 
 type Building = {
   id: string;
@@ -80,7 +81,7 @@ const BuildingDetail = () => {
   }, [slug]);
 
   if (loading) {
-    return <div className="p-8 text-muted-foreground">Loading…</div>;
+    return <Spinner className="min-h-screen" />;
   }
 
   if (!building) {
