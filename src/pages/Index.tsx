@@ -16,6 +16,7 @@ type Building = {
   latitude: number | null;
   longitude: number | null;
   composite_score: number | null;
+  photo_url: string | null;
 };
 
 const Index = () => {
@@ -25,7 +26,7 @@ const Index = () => {
   useEffect(() => {
     supabase
       .from("buildings")
-      .select("id,name,slug,address,latitude,longitude,composite_score")
+      .select("id,name,slug,address,latitude,longitude,composite_score,photo_url")
       .eq("status", "published")
       .then(({ data, error }) => {
         if (error) console.error(error);
@@ -33,10 +34,7 @@ const Index = () => {
       });
   }, []);
 
-  const center =
-    buildings.length > 0
-      ? { lat: Number(buildings[0].latitude), lng: Number(buildings[0].longitude) }
-      : { lat: 40.7128, lng: -74.006 };
+  const center = { lat: 40.7, lng: -74.1 };
 
   return (
     <div className="min-h-screen bg-background">
@@ -70,13 +68,20 @@ const Index = () => {
                 onCloseClick={() => setSelected(null)}
                 pixelOffset={[0, -40]}
               >
-                <div className="min-w-[200px] space-y-2 p-1">
+                <div className="min-w-[220px] max-w-[260px] space-y-2 p-1">
+                  {selected.photo_url && (
+                    <img
+                      src={selected.photo_url}
+                      alt={selected.name}
+                      className="w-full h-32 object-cover rounded"
+                    />
+                  )}
                   <h3 className="font-semibold text-base">{selected.name}</h3>
                   {selected.address && <p className="text-sm text-muted-foreground">{selected.address}</p>}
                   <p className="text-sm">
                     Score:{" "}
                     <span className="font-medium">
-                      {selected.composite_score != null ? Number(selected.composite_score).toFixed(1) : "N/A"}
+                      {selected.composite_score != null ? `${Number(selected.composite_score).toFixed(1)}/10` : "N/A"}
                     </span>
                   </p>
                   <Button asChild size="sm" className="w-full">
