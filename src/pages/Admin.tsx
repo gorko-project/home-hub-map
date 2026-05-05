@@ -213,7 +213,6 @@ const Admin = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Delete this building?")) return;
     await supabase.from("building_scores").delete().eq("building_id", id);
     const { error } = await supabase.from("buildings").delete().eq("id", id);
     if (error) {
