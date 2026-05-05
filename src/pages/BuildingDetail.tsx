@@ -80,7 +80,7 @@ const BuildingDetail = () => {
   }, [slug]);
 
   if (loading) {
-    return <div className="p-8 text-muted-foreground">Loading…</div>;
+    return <Spinner className="min-h-screen" />;
   }
 
   if (!building) {
