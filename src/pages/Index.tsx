@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/Spinner";
 import { supabase } from "@/integrations/supabase/client";
 
-const GOOGLE_MAPS_API_KEY = "AIzaSyBWrTrOvyiPmQBPJnOt_grjBo1cJCGuWYA";
+const GOOGLE_MAPS_API_KEY = "AIzaSyA7otCuVOVby8vCvbGr7F1qKFahE4AeCa4";
 const MAP_ID = "apartmentmap_main";
 
 type Building = {
@@ -83,6 +83,7 @@ const Index = () => {
             defaultZoom={12}
             gestureHandling="greedy"
             disableDefaultUI={false}
+            style={{ width: "100%", height: "100%" }}
           >
             {filtered.map((b) => (
               <AdvancedMarker
