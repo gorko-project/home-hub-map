@@ -288,22 +288,8 @@ const Admin = () => {
   }
 
   if (!isAdmin) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Navbar />
-        <main className="container max-w-md py-16 space-y-4">
-          <h1 className="text-2xl font-bold">Admin access required</h1>
-          <p className="text-muted-foreground">
-            Your account does not have the admin role. If you are the project owner, click below to grant
-            yourself admin access.
-          </p>
-          <Button onClick={becomeAdmin}>Grant me admin access</Button>
-          <Button variant="outline" onClick={() => supabase.auth.signOut().then(() => navigate("/auth"))}>
-            Sign out
-          </Button>
-        </main>
-      </div>
-    );
+    navigate("/");
+    return null;
   }
 
   const ScoreSlider = ({
