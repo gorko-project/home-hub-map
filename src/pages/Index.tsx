@@ -34,10 +34,7 @@ const Index = () => {
       });
   }, []);
 
-  const center =
-    buildings.length > 0
-      ? { lat: Number(buildings[0].latitude), lng: Number(buildings[0].longitude) }
-      : { lat: 40.7128, lng: -74.006 };
+  const center = { lat: 40.7, lng: -74.1 };
 
   return (
     <div className="min-h-screen bg-background">
