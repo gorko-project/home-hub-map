@@ -273,7 +273,7 @@ const Admin = () => {
         if (error) throw error;
       }
 
-      toast.success(editingId ? "Building updated" : "Building created");
+      toast.success("Building saved!");
       resetForm();
       loadBuildings();
     } catch (err: any) {
