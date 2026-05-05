@@ -16,6 +16,7 @@ type Building = {
   latitude: number | null;
   longitude: number | null;
   composite_score: number | null;
+  photo_url: string | null;
 };
 
 const Index = () => {
