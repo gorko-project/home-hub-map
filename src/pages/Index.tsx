@@ -26,7 +26,7 @@ const Index = () => {
   useEffect(() => {
     supabase
       .from("buildings")
-      .select("id,name,slug,address,latitude,longitude,composite_score")
+      .select("id,name,slug,address,latitude,longitude,composite_score,photo_url")
       .eq("status", "published")
       .then(({ data, error }) => {
         if (error) console.error(error);
