@@ -83,6 +83,7 @@ const Index = () => {
             defaultZoom={12}
             gestureHandling="greedy"
             disableDefaultUI={false}
+            style={{ width: "100%", height: "100%" }}
           >
             {filtered.map((b) => (
               <AdvancedMarker
