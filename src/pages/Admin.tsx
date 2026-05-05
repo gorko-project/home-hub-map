@@ -135,16 +135,6 @@ const Admin = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form.name]);
 
-  const becomeAdmin = async () => {
-    if (!userId) return;
-    const { error } = await supabase.from("user_roles").insert({ user_id: userId, role: "admin" });
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
-    toast.success("You are now an admin");
-    setIsAdmin(true);
-  };
 
   const handlePhotoUpload = async (file: File) => {
     setUploading(true);
