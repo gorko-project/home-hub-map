@@ -412,7 +412,7 @@ const Admin = () => {
 
               <div className="md:col-span-2 flex items-center justify-between rounded-lg bg-muted p-4">
                 <span className="text-sm">Composite score</span>
-                <span className="text-2xl font-bold">{composite.toFixed(2)}</span>
+                <span className="text-2xl font-bold">{composite.toFixed(1)}</span>
               </div>
 
               <div className="md:col-span-2 flex gap-2">
