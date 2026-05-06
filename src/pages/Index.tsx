@@ -30,6 +30,7 @@ const Index = () => {
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
   const [searchPin, setSearchPin] = useState<{ lat: number; lng: number } | null>(null);
+  const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null);
 
   useEffect(() => {
     supabase
@@ -66,7 +67,7 @@ const Index = () => {
         )}
 
         <APIProvider apiKey={GOOGLE_MAPS_API_KEY} libraries={["places"]}>
-          <SearchBar query={query} setQuery={setQuery} onPick={setSearchPin} />
+          <SearchBar query={query} setQuery={setQuery} onPick={setSearchPin} map={mapInstance} />
 
           <Map
             mapId={MAP_ID}
@@ -76,11 +77,8 @@ const Index = () => {
             disableDefaultUI={false}
             style={{ width: "100%", height: "100%" }}
           >
-            {searchPin && (
-              <AdvancedMarker position={searchPin}>
-                <Pin background="hsl(var(--destructive))" borderColor="hsl(var(--destructive))" glyphColor="white" />
-              </AdvancedMarker>
-            )}
+            <MapInstanceBridge onReady={setMapInstance} />
+            <SearchPinMarker position={searchPin} />
             {filtered.map((b) => (
               <AdvancedMarker
                 key={b.id}
@@ -128,8 +126,17 @@ const Index = () => {
   );
 };
 
-const SearchBar = ({ query, setQuery, onPick }: { query: string; setQuery: (v: string) => void; onPick: (p: { lat: number; lng: number } | null) => void }) => {
-  const map = useMap();
+const SearchBar = ({
+  query,
+  setQuery,
+  onPick,
+  map,
+}: {
+  query: string;
+  setQuery: (v: string) => void;
+  onPick: (p: { lat: number; lng: number } | null) => void;
+  map: google.maps.Map | null;
+}) => {
   const placesLib = useMapsLibrary("places");
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [predictions, setPredictions] = useState<google.maps.places.AutocompletePrediction[]>([]);
@@ -160,27 +167,36 @@ const SearchBar = ({ query, setQuery, onPick }: { query: string; setQuery: (v: s
     return () => clearTimeout(handle);
   }, [query]);
 
-  const choose = (p: google.maps.places.AutocompletePrediction) => {
-    setQuery(p.description);
+  const searchExactLocation = ({ placeId, address, nextQuery }: { placeId?: string; address?: string; nextQuery?: string }) => {
+    if (nextQuery) setQuery(nextQuery);
     setShowSuggest(false);
-    if (!placesServiceRef.current || !map) return;
+    if (!map || !placeId || !placesServiceRef.current) return;
+
     placesServiceRef.current.getDetails(
-      { placeId: p.place_id, fields: ["geometry"] },
-      (place) => {
+      { placeId, fields: ["geometry", "formatted_address", "name"] },
+      (place, status) => {
         const loc = place?.geometry?.location;
         const viewport = place?.geometry?.viewport;
-        if (loc) {
+
+        if (status === google.maps.places.PlacesServiceStatus.OK && loc) {
           const pos = { lat: loc.lat(), lng: loc.lng() };
           onPick(pos);
+          setQuery(nextQuery ?? place.formatted_address ?? place.name ?? query);
+
           if (viewport) map.fitBounds(viewport);
           else {
             map.panTo(pos);
             map.setZoom(18);
           }
         }
+
         if (placesLib) tokenRef.current = new placesLib.AutocompleteSessionToken();
       },
     );
+  };
+
+  const choose = (p: google.maps.places.AutocompletePrediction) => {
+    searchExactLocation({ placeId: p.place_id, nextQuery: p.description });
   };
 
   return (
@@ -193,6 +209,17 @@ const SearchBar = ({ query, setQuery, onPick }: { query: string; setQuery: (v: s
           onChange={(e) => {
             setQuery(e.target.value);
             setShowSuggest(true);
+          }}
+          onKeyDown={(e) => {
+            if (e.key !== "Enter") return;
+            e.preventDefault();
+
+            const trimmed = query.trim();
+            if (!trimmed) return;
+
+            if (predictions[0]) {
+              choose(predictions[0]);
+            }
           }}
           onFocus={() => setShowSuggest(true)}
           onBlur={() => setTimeout(() => setShowSuggest(false), 150)}
@@ -218,6 +245,51 @@ const SearchBar = ({ query, setQuery, onPick }: { query: string; setQuery: (v: s
       )}
     </div>
   );
+};
+
+const MapInstanceBridge = ({ onReady }: { onReady: (map: google.maps.Map | null) => void }) => {
+  const map = useMap();
+
+  useEffect(() => {
+    onReady(map ?? null);
+  }, [map, onReady]);
+
+  return null;
+};
+
+const SearchPinMarker = ({ position }: { position: { lat: number; lng: number } | null }) => {
+  const map = useMap();
+  const markerRef = useRef<google.maps.Marker | null>(null);
+
+  useEffect(() => {
+    if (!map) return;
+
+    if (!markerRef.current) {
+      markerRef.current = new google.maps.Marker({
+        map,
+        clickable: false,
+        zIndex: 1000,
+      });
+    }
+
+    if (position) {
+      markerRef.current.setMap(map);
+      markerRef.current.setPosition(position);
+    } else {
+      markerRef.current.setMap(null);
+    }
+
+    return () => undefined;
+  }, [map, position]);
+
+  useEffect(() => {
+    return () => {
+      markerRef.current?.setMap(null);
+      markerRef.current = null;
+    };
+  }, []);
+
+  return null;
 };
 
 export default Index;
