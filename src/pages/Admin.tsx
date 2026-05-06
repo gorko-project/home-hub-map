@@ -404,10 +404,10 @@ const Admin = () => {
 
               <div className="md:col-span-2 grid gap-4 md:grid-cols-2 pt-4 border-t">
                 <ScoreSlider label="Management (30%)" field="management" />
-                <ScoreSlider label="Noise (20%)" field="noise" />
-                <ScoreSlider label="Value (20%)" field="value" />
+                <ScoreSlider label="Quietness (20%)" field="noise" />
+                <ScoreSlider label="Value for Money (20%)" field="value" />
                 <ScoreSlider label="Location (15%)" field="location" />
-                <ScoreSlider label="Condition (15%)" field="condition" />
+                <ScoreSlider label="Building Condition (15%)" field="condition" />
               </div>
 
               <div className="md:col-span-2 flex items-center justify-between rounded-lg bg-muted p-4">
