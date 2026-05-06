@@ -67,7 +67,20 @@ const Index = () => {
         )}
 
         <APIProvider apiKey={GOOGLE_MAPS_API_KEY} libraries={["places"]}>
-          <SearchBar query={query} setQuery={setQuery} onPick={setSearchPin} map={mapInstance} />
+          <SearchBar
+            query={query}
+            setQuery={setQuery}
+            onPick={setSearchPin}
+            map={mapInstance}
+            buildingMatches={filtered === buildings ? [] : filtered}
+            onPickBuilding={(b) => {
+              if (mapInstance && b.latitude != null && b.longitude != null) {
+                mapInstance.panTo({ lat: Number(b.latitude), lng: Number(b.longitude) });
+                mapInstance.setZoom(17);
+              }
+              setSelected(b);
+            }}
+          />
 
           <Map
             mapId={MAP_ID}
@@ -79,7 +92,7 @@ const Index = () => {
           >
             <MapInstanceBridge onReady={setMapInstance} />
             <SearchPinMarker position={searchPin} />
-            {filtered.map((b) => (
+            {buildings.map((b) => (
               <AdvancedMarker
                 key={b.id}
                 position={{ lat: Number(b.latitude), lng: Number(b.longitude) }}
@@ -131,11 +144,15 @@ const SearchBar = ({
   setQuery,
   onPick,
   map,
+  buildingMatches,
+  onPickBuilding,
 }: {
   query: string;
   setQuery: (v: string) => void;
   onPick: (p: { lat: number; lng: number } | null) => void;
   map: google.maps.Map | null;
+  buildingMatches: Building[];
+  onPickBuilding: (b: Building) => void;
 }) => {
   const placesLib = useMapsLibrary("places");
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -227,8 +244,41 @@ const SearchBar = ({
           className="pl-10 pr-4 h-11 rounded-full border-border"
         />
       </div>
-      {showSuggest && predictions.length > 0 && (
+      {showSuggest && (buildingMatches.length > 0 || predictions.length > 0) && (
         <div className="mt-2 rounded-xl bg-background shadow-lg border border-border overflow-hidden">
+          {buildingMatches.length > 0 && (
+            <>
+              <div className="px-4 pt-2 pb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Buildings
+              </div>
+              {buildingMatches.slice(0, 5).map((b) => (
+                <button
+                  key={b.id}
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => {
+                    setQuery(b.name);
+                    setShowSuggest(false);
+                    onPickBuilding(b);
+                  }}
+                  className="w-full text-left px-4 py-2.5 text-sm hover:bg-muted flex items-start gap-2"
+                >
+                  <Search className="h-3.5 w-3.5 mt-0.5 text-muted-foreground shrink-0" />
+                  <span>
+                    <span className="font-medium">{b.name}</span>
+                    {b.neighborhood && (
+                      <span className="text-muted-foreground"> · {b.neighborhood}</span>
+                    )}
+                  </span>
+                </button>
+              ))}
+              {predictions.length > 0 && (
+                <div className="px-4 pt-2 pb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground border-t border-border">
+                  Addresses
+                </div>
+              )}
+            </>
+          )}
           {predictions.map((p) => (
             <button
               key={p.place_id}
