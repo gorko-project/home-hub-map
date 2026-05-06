@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { APIProvider, Map, AdvancedMarker, Pin, InfoWindow, useMap, useMapsLibrary } from "@vis.gl/react-google-maps";
-import { Search } from "lucide-react";
+import { Search, Home } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,6 +31,16 @@ const Index = () => {
   const [query, setQuery] = useState("");
   const [searchPin, setSearchPin] = useState<{ lat: number; lng: number } | null>(null);
   const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null);
+  const [zoom, setZoom] = useState(12);
+
+  useEffect(() => {
+    if (!mapInstance) return;
+    const listener = mapInstance.addListener("zoom_changed", () => {
+      setZoom(mapInstance.getZoom() ?? 12);
+    });
+    setZoom(mapInstance.getZoom() ?? 12);
+    return () => listener.remove();
+  }, [mapInstance]);
 
   useEffect(() => {
     supabase
@@ -98,11 +108,19 @@ const Index = () => {
                 position={{ lat: Number(b.latitude), lng: Number(b.longitude) }}
                 onClick={() => setSelected(b)}
               >
-                <Pin background="hsl(var(--primary))" borderColor="hsl(var(--primary))" glyphColor="hsl(var(--primary-foreground))">
-                  <span className="text-xs font-bold">
+                <div className="flex flex-col items-center cursor-pointer transition-transform duration-150 hover:scale-110">
+                  <div className="px-2 py-0.5 rounded-full bg-white shadow-md text-[11px] font-bold text-foreground leading-none mb-0.5">
                     {b.composite_score != null ? Number(b.composite_score).toFixed(1) : "—"}
-                  </span>
-                </Pin>
+                  </div>
+                  <div className="flex items-center justify-center h-8 w-8 rounded-full bg-white shadow-md ring-1 ring-black/5">
+                    <Home className="h-4 w-4" style={{ color: "#FF6B35" }} fill="#FF6B35" strokeWidth={2} />
+                  </div>
+                  {zoom >= 14 && (
+                    <div className="mt-1 px-2 py-0.5 rounded-full bg-white shadow-md text-[11px] font-medium text-foreground leading-none whitespace-nowrap max-w-[140px] truncate">
+                      {b.name}
+                    </div>
+                  )}
+                </div>
               </AdvancedMarker>
             ))}
 
