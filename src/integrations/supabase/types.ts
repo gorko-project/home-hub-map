@@ -14,6 +14,62 @@ export type Database = {
   }
   public: {
     Tables: {
+      building_reviews: {
+        Row: {
+          building_condition: number
+          building_id: string
+          comment: string
+          created_at: string
+          id: string
+          location: number
+          management: number
+          overall: number
+          quietness: number
+          tenancy_period: string | null
+          updated_at: string
+          user_id: string
+          value_for_money: number
+        }
+        Insert: {
+          building_condition: number
+          building_id: string
+          comment: string
+          created_at?: string
+          id?: string
+          location: number
+          management: number
+          overall: number
+          quietness: number
+          tenancy_period?: string | null
+          updated_at?: string
+          user_id: string
+          value_for_money: number
+        }
+        Update: {
+          building_condition?: number
+          building_id?: string
+          comment?: string
+          created_at?: string
+          id?: string
+          location?: number
+          management?: number
+          overall?: number
+          quietness?: number
+          tenancy_period?: string | null
+          updated_at?: string
+          user_id?: string
+          value_for_money?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "building_reviews_building_id_fkey"
+            columns: ["building_id"]
+            isOneToOne: false
+            referencedRelation: "buildings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       building_scores: {
         Row: {
           building_id: string
@@ -97,6 +153,30 @@ export type Database = {
           photo_url?: string | null
           slug?: string
           status?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
