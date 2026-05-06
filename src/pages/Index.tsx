@@ -28,6 +28,7 @@ const Index = () => {
   const [selected, setSelected] = useState<Building | null>(null);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
+  const [searchPin, setSearchPin] = useState<{ lat: number; lng: number } | null>(null);
 
   useEffect(() => {
     supabase
@@ -64,7 +65,7 @@ const Index = () => {
         )}
 
         <APIProvider apiKey={GOOGLE_MAPS_API_KEY} libraries={["places"]}>
-          <SearchBar query={query} setQuery={setQuery} />
+          <SearchBar query={query} setQuery={setQuery} onPick={setSearchPin} />
 
           <Map
             mapId={MAP_ID}
@@ -74,6 +75,11 @@ const Index = () => {
             disableDefaultUI={false}
             style={{ width: "100%", height: "100%" }}
           >
+            {searchPin && (
+              <AdvancedMarker position={searchPin}>
+                <Pin background="hsl(var(--destructive))" borderColor="hsl(var(--destructive))" glyphColor="white" />
+              </AdvancedMarker>
+            )}
             {filtered.map((b) => (
               <AdvancedMarker
                 key={b.id}
@@ -121,7 +127,7 @@ const Index = () => {
   );
 };
 
-const SearchBar = ({ query, setQuery }: { query: string; setQuery: (v: string) => void }) => {
+const SearchBar = ({ query, setQuery, onPick }: { query: string; setQuery: (v: string) => void; onPick: (p: { lat: number; lng: number } | null) => void }) => {
   const map = useMap();
   const placesLib = useMapsLibrary("places");
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -160,9 +166,16 @@ const SearchBar = ({ query, setQuery }: { query: string; setQuery: (v: string) =
     placesServiceRef.current.getDetails(
       { placeId: p.place_id, fields: ["geometry"] },
       (place) => {
-        if (place?.geometry?.location) {
-          map.panTo(place.geometry.location);
-          map.setZoom(15);
+        const loc = place?.geometry?.location;
+        const viewport = place?.geometry?.viewport;
+        if (loc) {
+          const pos = { lat: loc.lat(), lng: loc.lng() };
+          onPick(pos);
+          if (viewport) map.fitBounds(viewport);
+          else {
+            map.panTo(pos);
+            map.setZoom(18);
+          }
         }
         if (placesLib) tokenRef.current = new placesLib.AutocompleteSessionToken();
       },
