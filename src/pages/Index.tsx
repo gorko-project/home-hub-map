@@ -67,7 +67,20 @@ const Index = () => {
         )}
 
         <APIProvider apiKey={GOOGLE_MAPS_API_KEY} libraries={["places"]}>
-          <SearchBar query={query} setQuery={setQuery} onPick={setSearchPin} map={mapInstance} />
+          <SearchBar
+            query={query}
+            setQuery={setQuery}
+            onPick={setSearchPin}
+            map={mapInstance}
+            buildingMatches={filtered === buildings ? [] : filtered}
+            onPickBuilding={(b) => {
+              if (mapInstance && b.latitude != null && b.longitude != null) {
+                mapInstance.panTo({ lat: Number(b.latitude), lng: Number(b.longitude) });
+                mapInstance.setZoom(17);
+              }
+              setSelected(b);
+            }}
+          />
 
           <Map
             mapId={MAP_ID}
