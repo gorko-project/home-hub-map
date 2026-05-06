@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { APIProvider, Map, AdvancedMarker, Pin, InfoWindow, useMap, useMapsLibrary } from "@vis.gl/react-google-maps";
-import { Search, Home } from "lucide-react";
+import { Search, Home, X } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -109,14 +109,23 @@ const Index = () => {
                 onClick={() => setSelected(b)}
               >
                 <div className="flex flex-col items-center cursor-pointer transition-transform duration-150 hover:scale-110">
-                  <div className="px-2 py-0.5 rounded-full bg-white shadow-md text-[11px] font-bold text-foreground leading-none mb-0.5">
+                  <div
+                    className="text-[11px] font-bold leading-none mb-0.5"
+                    style={{ color: "#E53935", textShadow: "0 1px 2px rgba(255,255,255,0.9), 0 0 2px rgba(255,255,255,0.9)" }}
+                  >
                     {b.composite_score != null ? Number(b.composite_score).toFixed(1) : "—"}
                   </div>
-                  <div className="flex items-center justify-center h-8 w-8 rounded-full bg-white shadow-md ring-1 ring-black/5">
-                    <Home className="h-4 w-4" style={{ color: "#FF6B35" }} fill="#FF6B35" strokeWidth={2} />
-                  </div>
+                  <Home
+                    className="h-6 w-6"
+                    style={{ color: "#E53935", filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.3))" }}
+                    fill="#E53935"
+                    strokeWidth={2}
+                  />
                   {zoom >= 14 && (
-                    <div className="mt-1 px-2 py-0.5 rounded-full bg-white shadow-md text-[11px] font-medium text-foreground leading-none whitespace-nowrap max-w-[140px] truncate">
+                    <div
+                      className="mt-0.5 text-[11px] font-medium leading-none whitespace-nowrap max-w-[140px] truncate"
+                      style={{ color: "#1f1f1f", textShadow: "0 1px 2px rgba(255,255,255,0.95), 0 0 2px rgba(255,255,255,0.95)" }}
+                    >
                       {b.name}
                     </div>
                   )}
@@ -244,6 +253,7 @@ const SearchBar = ({
           onChange={(e) => {
             setQuery(e.target.value);
             setShowSuggest(true);
+            if (e.target.value === "") onPick(null);
           }}
           onKeyDown={(e) => {
             if (e.key !== "Enter") return;
@@ -259,8 +269,25 @@ const SearchBar = ({
           onFocus={() => setShowSuggest(true)}
           onBlur={() => setTimeout(() => setShowSuggest(false), 150)}
           placeholder="Search address, building, or neighborhood…"
-          className="pl-10 pr-4 h-11 rounded-full border-border"
+          className="pl-10 pr-10 h-11 rounded-full border-border"
         />
+        {query && (
+          <button
+            type="button"
+            aria-label="Clear search"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => {
+              setQuery("");
+              setPredictions([]);
+              setShowSuggest(false);
+              onPick(null);
+              inputRef.current?.focus();
+            }}
+            className="absolute right-3 top-1/2 -translate-y-1/2 h-6 w-6 rounded-full flex items-center justify-center hover:bg-muted text-muted-foreground"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        )}
       </div>
       {showSuggest && (buildingMatches.length > 0 || predictions.length > 0) && (
         <div className="mt-2 rounded-xl bg-background shadow-lg border border-border overflow-hidden">
