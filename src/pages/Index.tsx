@@ -142,14 +142,15 @@ const SearchBar = ({
   const [predictions, setPredictions] = useState<google.maps.places.AutocompletePrediction[]>([]);
   const [showSuggest, setShowSuggest] = useState(false);
   const serviceRef = useRef<google.maps.places.AutocompleteService | null>(null);
+  const placesServiceRef = useRef<google.maps.places.PlacesService | null>(null);
   const tokenRef = useRef<google.maps.places.AutocompleteSessionToken | null>(null);
-  const geocoderRef = useRef<google.maps.Geocoder | null>(null);
 
   useEffect(() => {
     if (!placesLib) return;
     serviceRef.current = new placesLib.AutocompleteService();
     tokenRef.current = new placesLib.AutocompleteSessionToken();
-    geocoderRef.current = new google.maps.Geocoder();
+    const div = document.createElement("div");
+    placesServiceRef.current = new placesLib.PlacesService(div);
   }, [placesLib]);
 
   useEffect(() => {
@@ -169,25 +170,29 @@ const SearchBar = ({
   const searchExactLocation = ({ placeId, address, nextQuery }: { placeId?: string; address?: string; nextQuery?: string }) => {
     if (nextQuery) setQuery(nextQuery);
     setShowSuggest(false);
-    if (!geocoderRef.current || !map || (!placeId && !address)) return;
+    if (!map || !placeId || !placesServiceRef.current) return;
 
-    geocoderRef.current.geocode(placeId ? { placeId } : { address: address! }, (results, status) => {
-      const result = results?.[0];
-      const loc = result?.geometry?.location;
-      const viewport = result?.geometry?.viewport;
+    placesServiceRef.current.getDetails(
+      { placeId, fields: ["geometry", "formatted_address", "name"] },
+      (place, status) => {
+        const loc = place?.geometry?.location;
+        const viewport = place?.geometry?.viewport;
 
-      if (status === "OK" && loc) {
-        const pos = { lat: loc.lat(), lng: loc.lng() };
-        onPick(pos);
-        if (viewport) map.fitBounds(viewport);
-        else {
-          map.panTo(pos);
-          map.setZoom(18);
+        if (status === google.maps.places.PlacesServiceStatus.OK && loc) {
+          const pos = { lat: loc.lat(), lng: loc.lng() };
+          onPick(pos);
+          setQuery(nextQuery ?? place.formatted_address ?? place.name ?? query);
+
+          if (viewport) map.fitBounds(viewport);
+          else {
+            map.panTo(pos);
+            map.setZoom(18);
+          }
         }
-      }
 
-      if (placesLib) tokenRef.current = new placesLib.AutocompleteSessionToken();
-    });
+        if (placesLib) tokenRef.current = new placesLib.AutocompleteSessionToken();
+      },
+    );
   };
 
   const choose = (p: google.maps.places.AutocompletePrediction) => {
@@ -214,10 +219,7 @@ const SearchBar = ({
 
             if (predictions[0]) {
               choose(predictions[0]);
-              return;
             }
-
-            searchExactLocation({ address: trimmed });
           }}
           onFocus={() => setShowSuggest(true)}
           onBlur={() => setTimeout(() => setShowSuggest(false), 150)}
