@@ -244,8 +244,41 @@ const SearchBar = ({
           className="pl-10 pr-4 h-11 rounded-full border-border"
         />
       </div>
-      {showSuggest && predictions.length > 0 && (
+      {showSuggest && (buildingMatches.length > 0 || predictions.length > 0) && (
         <div className="mt-2 rounded-xl bg-background shadow-lg border border-border overflow-hidden">
+          {buildingMatches.length > 0 && (
+            <>
+              <div className="px-4 pt-2 pb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Buildings
+              </div>
+              {buildingMatches.slice(0, 5).map((b) => (
+                <button
+                  key={b.id}
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => {
+                    setQuery(b.name);
+                    setShowSuggest(false);
+                    onPickBuilding(b);
+                  }}
+                  className="w-full text-left px-4 py-2.5 text-sm hover:bg-muted flex items-start gap-2"
+                >
+                  <Search className="h-3.5 w-3.5 mt-0.5 text-muted-foreground shrink-0" />
+                  <span>
+                    <span className="font-medium">{b.name}</span>
+                    {b.neighborhood && (
+                      <span className="text-muted-foreground"> · {b.neighborhood}</span>
+                    )}
+                  </span>
+                </button>
+              ))}
+              {predictions.length > 0 && (
+                <div className="px-4 pt-2 pb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground border-t border-border">
+                  Addresses
+                </div>
+              )}
+            </>
+          )}
           {predictions.map((p) => (
             <button
               key={p.place_id}
