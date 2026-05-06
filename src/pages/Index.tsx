@@ -92,7 +92,7 @@ const Index = () => {
           >
             <MapInstanceBridge onReady={setMapInstance} />
             <SearchPinMarker position={searchPin} />
-            {filtered.map((b) => (
+            {buildings.map((b) => (
               <AdvancedMarker
                 key={b.id}
                 position={{ lat: Number(b.latitude), lng: Number(b.longitude) }}
@@ -144,11 +144,15 @@ const SearchBar = ({
   setQuery,
   onPick,
   map,
+  buildingMatches,
+  onPickBuilding,
 }: {
   query: string;
   setQuery: (v: string) => void;
   onPick: (p: { lat: number; lng: number } | null) => void;
   map: google.maps.Map | null;
+  buildingMatches: Building[];
+  onPickBuilding: (b: Building) => void;
 }) => {
   const placesLib = useMapsLibrary("places");
   const inputRef = useRef<HTMLInputElement | null>(null);
