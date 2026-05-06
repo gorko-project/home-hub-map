@@ -57,26 +57,15 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
       <main className="fixed inset-0 top-14">
-        {/* Floating search bar */}
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 w-[min(420px,calc(100%-2rem))]">
-          <div className="relative shadow-lg rounded-full bg-background">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search by name or neighborhood…"
-              className="pl-10 pr-4 h-11 rounded-full border-border"
-            />
-          </div>
-        </div>
-
         {loading && (
           <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/60">
             <Spinner />
           </div>
         )}
 
-        <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
+        <APIProvider apiKey={GOOGLE_MAPS_API_KEY} libraries={["places"]}>
+          <SearchBar query={query} setQuery={setQuery} />
+
           <Map
             mapId={MAP_ID}
             defaultCenter={center}
@@ -107,11 +96,7 @@ const Index = () => {
               >
                 <div className="min-w-[220px] max-w-[260px] space-y-2 p-1">
                   {selected.photo_url ? (
-                    <img
-                      src={selected.photo_url}
-                      alt={selected.name}
-                      className="w-full h-32 object-cover rounded"
-                    />
+                    <img src={selected.photo_url} alt={selected.name} className="w-full h-32 object-cover rounded" />
                   ) : (
                     <div className="w-full h-32 rounded bg-muted" />
                   )}
@@ -132,6 +117,91 @@ const Index = () => {
           </Map>
         </APIProvider>
       </main>
+    </div>
+  );
+};
+
+const SearchBar = ({ query, setQuery }: { query: string; setQuery: (v: string) => void }) => {
+  const map = useMap();
+  const placesLib = useMapsLibrary("places");
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const [predictions, setPredictions] = useState<google.maps.places.AutocompletePrediction[]>([]);
+  const [showSuggest, setShowSuggest] = useState(false);
+  const serviceRef = useRef<google.maps.places.AutocompleteService | null>(null);
+  const placesServiceRef = useRef<google.maps.places.PlacesService | null>(null);
+  const tokenRef = useRef<google.maps.places.AutocompleteSessionToken | null>(null);
+
+  useEffect(() => {
+    if (!placesLib) return;
+    serviceRef.current = new placesLib.AutocompleteService();
+    tokenRef.current = new placesLib.AutocompleteSessionToken();
+    const div = document.createElement("div");
+    placesServiceRef.current = new placesLib.PlacesService(div);
+  }, [placesLib]);
+
+  useEffect(() => {
+    if (!serviceRef.current || !query.trim()) {
+      setPredictions([]);
+      return;
+    }
+    const handle = setTimeout(() => {
+      serviceRef.current!.getPlacePredictions(
+        { input: query, sessionToken: tokenRef.current ?? undefined },
+        (preds) => setPredictions(preds ?? []),
+      );
+    }, 200);
+    return () => clearTimeout(handle);
+  }, [query]);
+
+  const choose = (p: google.maps.places.AutocompletePrediction) => {
+    setQuery(p.description);
+    setShowSuggest(false);
+    if (!placesServiceRef.current || !map) return;
+    placesServiceRef.current.getDetails(
+      { placeId: p.place_id, fields: ["geometry"] },
+      (place) => {
+        if (place?.geometry?.location) {
+          map.panTo(place.geometry.location);
+          map.setZoom(15);
+        }
+        if (placesLib) tokenRef.current = new placesLib.AutocompleteSessionToken();
+      },
+    );
+  };
+
+  return (
+    <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 w-[min(420px,calc(100%-2rem))]">
+      <div className="relative shadow-lg rounded-full bg-background">
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          ref={inputRef}
+          value={query}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setShowSuggest(true);
+          }}
+          onFocus={() => setShowSuggest(true)}
+          onBlur={() => setTimeout(() => setShowSuggest(false), 150)}
+          placeholder="Search address, building, or neighborhood…"
+          className="pl-10 pr-4 h-11 rounded-full border-border"
+        />
+      </div>
+      {showSuggest && predictions.length > 0 && (
+        <div className="mt-2 rounded-xl bg-background shadow-lg border border-border overflow-hidden">
+          {predictions.map((p) => (
+            <button
+              key={p.place_id}
+              type="button"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => choose(p)}
+              className="w-full text-left px-4 py-2.5 text-sm hover:bg-muted flex items-start gap-2"
+            >
+              <Search className="h-3.5 w-3.5 mt-0.5 text-muted-foreground shrink-0" />
+              <span>{p.description}</span>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
