@@ -2,7 +2,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { APIProvider, Map, AdvancedMarker, Pin, InfoWindow, useMap, useMapsLibrary } from "@vis.gl/react-google-maps";
-import { Search, Home, X } from "lucide-react";
+import { Search, X } from "lucide-react";
+import homeMarker from "@/assets/home-marker.svg";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -108,27 +109,24 @@ const Index = () => {
                 position={{ lat: Number(b.latitude), lng: Number(b.longitude) }}
                 onClick={() => setSelected(b)}
               >
-                <div className="flex flex-col items-center cursor-pointer transition-transform duration-150 hover:scale-110">
-                  <div
-                    className="text-[11px] font-bold leading-none mb-0.5"
-                    style={{ color: "#E53935", textShadow: "0 1px 2px rgba(255,255,255,0.9), 0 0 2px rgba(255,255,255,0.9)" }}
-                  >
-                    {b.composite_score != null ? Number(b.composite_score).toFixed(1) : "—"}
-                  </div>
-                  <Home
-                    className="h-6 w-6"
-                    style={{ color: "#E53935", filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.3))" }}
-                    fill="#E53935"
-                    strokeWidth={2}
-                  />
-                  {zoom >= 14 && (
-                    <div
-                      className="mt-0.5 text-[11px] font-medium leading-none whitespace-nowrap max-w-[140px] truncate"
-                      style={{ color: "#1f1f1f", textShadow: "0 1px 2px rgba(255,255,255,0.95), 0 0 2px rgba(255,255,255,0.95)" }}
+                <div className="flex items-center gap-1 cursor-pointer transition-transform duration-150 hover:scale-110">
+                  <img src={homeMarker} alt="" className="h-6 w-6" style={{ filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.3))" }} />
+                  <div className="flex flex-col leading-tight">
+                    <span
+                      className="text-[12px] font-bold whitespace-nowrap max-w-[160px] truncate"
+                      style={{ color: "#000", textShadow: "0 1px 2px rgba(255,255,255,0.95), 0 0 2px rgba(255,255,255,0.95)" }}
                     >
                       {b.name}
-                    </div>
-                  )}
+                    </span>
+                    {zoom > 16 && (
+                      <span
+                        className="text-[11px] font-normal whitespace-nowrap"
+                        style={{ color: "#000", textShadow: "0 1px 2px rgba(255,255,255,0.95), 0 0 2px rgba(255,255,255,0.95)" }}
+                      >
+                        {b.composite_score != null ? Number(b.composite_score).toFixed(1) : "—"}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </AdvancedMarker>
             ))}
