@@ -109,15 +109,17 @@ const Index = () => {
                 position={{ lat: Number(b.latitude), lng: Number(b.longitude) }}
                 onClick={() => setSelected(b)}
               >
-                <div className="flex items-center gap-1 cursor-pointer transition-transform duration-150 hover:scale-110">
-                  <img src={homeMarker} alt="" className="h-6 w-6" style={{ filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.3))" }} />
-                  <div className="flex flex-col leading-tight">
-                    <span
-                      className="text-[12px] font-bold whitespace-nowrap max-w-[160px] truncate"
-                      style={{ color: "#000", textShadow: "0 1px 2px rgba(255,255,255,0.95), 0 0 2px rgba(255,255,255,0.95)" }}
-                    >
-                      {b.name}
-                    </span>
+                <div className="relative cursor-pointer transition-transform duration-150 hover:scale-110" style={{ width: 24, height: 24 }}>
+                  <img src={homeMarker} alt="" className="h-6 w-6 block" style={{ filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.3))" }} />
+                  <div className="absolute left-7 top-1/2 -translate-y-1/2 flex flex-col leading-tight">
+                    {zoom > 12 && (
+                      <span
+                        className="text-[12px] font-bold whitespace-nowrap max-w-[160px] truncate"
+                        style={{ color: "#000", textShadow: "0 1px 2px rgba(255,255,255,0.95), 0 0 2px rgba(255,255,255,0.95)" }}
+                      >
+                        {b.name}
+                      </span>
+                    )}
                     {zoom > 16 && (
                       <span
                         className="text-[11px] font-normal whitespace-nowrap"
