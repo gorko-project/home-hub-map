@@ -110,7 +110,12 @@ const Index = () => {
                 onClick={() => setSelected(b)}
               >
                 <div className="relative cursor-pointer transition-transform duration-150 hover:scale-110" style={{ width: 24, height: 24 }}>
-                  <img src={homeMarker} alt="" className="h-6 w-6 block" style={{ filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.3))" }} />
+                  <div
+                    className="h-6 w-6 rounded-full flex items-center justify-center"
+                    style={{ background: "#FF6B35", boxShadow: "0 1px 3px rgba(0,0,0,0.3)" }}
+                  >
+                    <img src={homeMarker} alt="" className="h-4 w-4 block" />
+                  </div>
                   <div className="absolute left-7 top-1/2 -translate-y-1/2 flex flex-col leading-tight">
                     {zoom > 12 && (
                       <span
