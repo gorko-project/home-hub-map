@@ -401,7 +401,8 @@ const BuildingDetail = () => {
                     <div>
                       <div className="font-medium">{r.profiles?.display_name ?? "Anonymous"}</div>
                       <div className="flex items-center gap-2 mt-1">
-                        <StarRating value={r.overall} size={16} />
+                        <StarsDisplay value={r.overall} size={16} />
+                        <span className="text-sm font-medium tabular-nums">{r.overall.toFixed(1)}</span>
                         <span className="text-xs text-muted-foreground">
                           {new Date(r.created_at).toLocaleDateString()}
                           {r.tenancy_period ? ` · ${r.tenancy_period}` : ""}
