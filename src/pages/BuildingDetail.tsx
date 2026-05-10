@@ -432,7 +432,7 @@ const BuildingDetail = () => {
                     {REVIEW_CATEGORIES.map((c) => (
                       <div key={c.key} className="text-xs">
                         <div className="text-muted-foreground">{c.label}</div>
-                        <StarRating value={r[c.key as ReviewCategoryKey]} size={12} />
+                        <StarsDisplay value={r[c.key as ReviewCategoryKey]} size={12} />
                       </div>
                     ))}
                   </div>
