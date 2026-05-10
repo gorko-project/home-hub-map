@@ -73,11 +73,11 @@ const blankForm = {
 };
 
 const blankScores: ScoresState = {
-  management: 5,
-  noise: 5,
-  value: 5,
-  location: 5,
-  condition: 5,
+  management: 2.5,
+  noise: 2.5,
+  value: 2.5,
+  location: 2.5,
+  condition: 2.5,
 };
 
 const Admin = () => {
