@@ -73,59 +73,27 @@ type Review = {
   profiles?: { display_name: string | null } | null;
 };
 
-const ScoreBar = ({ label, score }: { label: string; score: number | null }) => {
-  const pct = score != null ? (score / 10) * 100 : 0;
+const ScoreRow = ({ label, score }: { label: string; score: number | null }) => {
   return (
-    <div className="space-y-1">
-      <div className="flex items-center justify-between text-sm">
-        <span className="font-medium">{label}</span>
-        <span className="text-muted-foreground tabular-nums">
-          {score != null ? `${score}/10` : "—"}
+    <div className="flex items-center justify-between text-sm">
+      <span className="font-medium">{label}</span>
+      <div className="flex items-center gap-2">
+        <StarsDisplay value={score ?? 0} size={16} />
+        <span className="text-muted-foreground tabular-nums w-10 text-right">
+          {score != null ? Number(score).toFixed(1) : "—"}
         </span>
       </div>
-      <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
-        <div className="h-full bg-primary transition-all" style={{ width: `${pct}%` }} />
-      </div>
-    </div>
-  );
-};
-
-const StarRating = ({
-  value,
-  onChange,
-  size = 20,
-}: {
-  value: number;
-  onChange?: (v: number) => void;
-  size?: number;
-}) => {
-  return (
-    <div className="flex gap-0.5">
-      {[1, 2, 3, 4, 5].map((n) => (
-        <button
-          key={n}
-          type="button"
-          disabled={!onChange}
-          onClick={() => onChange?.(n)}
-          className={onChange ? "cursor-pointer" : "cursor-default"}
-        >
-          <Star
-            style={{ width: size, height: size }}
-            className={n <= value ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground"}
-          />
-        </button>
-      ))}
     </div>
   );
 };
 
 const blankReview = {
-  overall: 5,
-  management: 5,
-  quietness: 5,
-  value_for_money: 5,
-  location: 5,
-  building_condition: 5,
+  overall: 0,
+  management: 0,
+  quietness: 0,
+  value_for_money: 0,
+  location: 0,
+  building_condition: 0,
   comment: "",
   tenancy_period: "",
 };
