@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Slider } from "@/components/ui/slider";
+import { StarsDisplay } from "@/components/Stars";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
@@ -73,11 +73,11 @@ const blankForm = {
 };
 
 const blankScores: ScoresState = {
-  management: 5,
-  noise: 5,
-  value: 5,
-  location: 5,
-  condition: 5,
+  management: 2.5,
+  noise: 2.5,
+  value: 2.5,
+  location: 2.5,
+  condition: 2.5,
 };
 
 const Admin = () => {
@@ -199,11 +199,11 @@ const Admin = () => {
     if (data) {
       setEditingScoreId(data.id);
       setScores({
-        management: data.management ?? 5,
-        noise: data.noise ?? 5,
-        value: data.value ?? 5,
-        location: data.location ?? 5,
-        condition: data.condition ?? 5,
+        management: Number(data.management ?? 2.5),
+        noise: Number(data.noise ?? 2.5),
+        value: Number(data.value ?? 2.5),
+        location: Number(data.location ?? 2.5),
+        condition: Number(data.condition ?? 2.5),
       });
     } else {
       setEditingScoreId(null);
@@ -296,27 +296,43 @@ const Admin = () => {
     return null;
   }
 
-  const ScoreSlider = ({
+  const ScoreInput = ({
     label,
     field,
   }: {
     label: string;
     field: keyof ScoresState;
-  }) => (
-    <div>
-      <div className="flex justify-between text-sm">
+  }) => {
+    const val = scores[field];
+    return (
+      <div className="space-y-1.5">
         <Label>{label}</Label>
-        <span className="font-medium">{scores[field]}</span>
+        <div className="flex items-center gap-3">
+          <Input
+            type="number"
+            min={1}
+            max={5}
+            step={0.1}
+            value={Number.isFinite(val) ? val : ""}
+            onChange={(e) => {
+              const raw = e.target.value;
+              if (raw === "") {
+                setScores((s) => ({ ...s, [field]: 0 }));
+                return;
+              }
+              const n = Math.max(1, Math.min(5, parseFloat(raw)));
+              if (!Number.isNaN(n)) setScores((s) => ({ ...s, [field]: n }));
+            }}
+            className="w-24"
+          />
+          <StarsDisplay value={val} size={18} />
+          <span className="text-sm text-muted-foreground tabular-nums">
+            {val.toFixed(1)} / 5
+          </span>
+        </div>
       </div>
-      <Slider
-        min={1}
-        max={10}
-        step={1}
-        value={[scores[field]]}
-        onValueChange={(v) => setScores((s) => ({ ...s, [field]: v[0] }))}
-      />
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -403,16 +419,20 @@ const Admin = () => {
               </div>
 
               <div className="md:col-span-2 grid gap-4 md:grid-cols-2 pt-4 border-t">
-                <ScoreSlider label="Management (30%)" field="management" />
-                <ScoreSlider label="Quietness (20%)" field="noise" />
-                <ScoreSlider label="Value for Money (20%)" field="value" />
-                <ScoreSlider label="Location (15%)" field="location" />
-                <ScoreSlider label="Building Condition (15%)" field="condition" />
+                <ScoreInput label="Management (30%)" field="management" />
+                <ScoreInput label="Quietness (20%)" field="noise" />
+                <ScoreInput label="Value for Money (20%)" field="value" />
+                <ScoreInput label="Location (15%)" field="location" />
+                <ScoreInput label="Building Condition (15%)" field="condition" />
               </div>
 
               <div className="md:col-span-2 flex items-center justify-between rounded-lg bg-muted p-4">
                 <span className="text-sm">Composite score</span>
-                <span className="text-2xl font-bold">{composite.toFixed(1)}</span>
+                <div className="flex items-center gap-3">
+                  <StarsDisplay value={composite} size={22} />
+                  <span className="text-2xl font-bold tabular-nums">{composite.toFixed(1)}</span>
+                  <span className="text-sm text-muted-foreground">/ 5</span>
+                </div>
               </div>
 
               <div className="md:col-span-2 flex gap-2">
@@ -449,7 +469,7 @@ const Admin = () => {
                   <TableRow key={b.id}>
                     <TableCell className="font-medium">{b.name}</TableCell>
                     <TableCell>{b.neighborhood ?? "—"}</TableCell>
-                    <TableCell>{b.composite_score != null ? Number(b.composite_score).toFixed(1) : "—"}</TableCell>
+                    <TableCell>{b.composite_score != null ? `${Number(b.composite_score).toFixed(1)} ★` : "—"}</TableCell>
                     <TableCell>{b.status}</TableCell>
                     <TableCell className="text-right space-x-2">
                       <Button size="sm" variant="outline" onClick={() => startEdit(b)}>Edit</Button>

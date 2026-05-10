@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, Star, Trash2 } from "lucide-react";
+import { ArrowLeft, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/Spinner";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { StarsDisplay, StarsInput } from "@/components/Stars";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -72,59 +73,27 @@ type Review = {
   profiles?: { display_name: string | null } | null;
 };
 
-const ScoreBar = ({ label, score }: { label: string; score: number | null }) => {
-  const pct = score != null ? (score / 10) * 100 : 0;
+const ScoreRow = ({ label, score }: { label: string; score: number | null }) => {
   return (
-    <div className="space-y-1">
-      <div className="flex items-center justify-between text-sm">
-        <span className="font-medium">{label}</span>
-        <span className="text-muted-foreground tabular-nums">
-          {score != null ? `${score}/10` : "—"}
+    <div className="flex items-center justify-between text-sm">
+      <span className="font-medium">{label}</span>
+      <div className="flex items-center gap-2">
+        <StarsDisplay value={score ?? 0} size={16} />
+        <span className="text-muted-foreground tabular-nums w-10 text-right">
+          {score != null ? Number(score).toFixed(1) : "—"}
         </span>
       </div>
-      <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
-        <div className="h-full bg-primary transition-all" style={{ width: `${pct}%` }} />
-      </div>
-    </div>
-  );
-};
-
-const StarRating = ({
-  value,
-  onChange,
-  size = 20,
-}: {
-  value: number;
-  onChange?: (v: number) => void;
-  size?: number;
-}) => {
-  return (
-    <div className="flex gap-0.5">
-      {[1, 2, 3, 4, 5].map((n) => (
-        <button
-          key={n}
-          type="button"
-          disabled={!onChange}
-          onClick={() => onChange?.(n)}
-          className={onChange ? "cursor-pointer" : "cursor-default"}
-        >
-          <Star
-            style={{ width: size, height: size }}
-            className={n <= value ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground"}
-          />
-        </button>
-      ))}
     </div>
   );
 };
 
 const blankReview = {
-  overall: 5,
-  management: 5,
-  quietness: 5,
-  value_for_money: 5,
-  location: 5,
-  building_condition: 5,
+  overall: 0,
+  management: 0,
+  quietness: 0,
+  value_for_money: 0,
+  location: 0,
+  building_condition: 0,
   comment: "",
   tenancy_period: "",
 };
@@ -231,6 +200,10 @@ const BuildingDetail = () => {
   const submitReview = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!userId || !building) return;
+    if (form.overall < 1) {
+      toast.error("Please select an overall star rating");
+      return;
+    }
     if (form.comment.trim().length < 20) {
       toast.error("Comment must be at least 20 characters");
       return;
@@ -322,15 +295,18 @@ const BuildingDetail = () => {
         <div className="grid gap-8 md:grid-cols-2">
           <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
             <h2 className="text-lg font-semibold mb-4">Rating</h2>
-            <div className="mb-6 flex items-baseline gap-2">
+            <div className="mb-6 flex items-center gap-3">
               <span className="text-5xl font-bold tabular-nums">
                 {building.composite_score != null ? Number(building.composite_score).toFixed(1) : "—"}
               </span>
-              <span className="text-xl text-muted-foreground">/10</span>
+              <span className="text-xl text-muted-foreground">/ 5</span>
+              {building.composite_score != null && (
+                <StarsDisplay value={Number(building.composite_score)} size={22} />
+              )}
             </div>
-            <div className="space-y-4">
+            <div className="space-y-3">
               {CATEGORIES.map((c) => (
-                <ScoreBar key={c.key} label={c.label} score={scores ? (scores[c.key] as number | null) : null} />
+                <ScoreRow key={c.key} label={c.label} score={scores ? (scores[c.key] as number | null) : null} />
               ))}
             </div>
           </div>
@@ -351,9 +327,9 @@ const BuildingDetail = () => {
             <h2 className="text-lg font-semibold">Reviews</h2>
             {avgOverall != null && (
               <div className="flex items-center gap-2 text-sm">
-                <StarRating value={Math.round(avgOverall)} size={16} />
-                <span className="font-medium">{avgOverall.toFixed(1)}</span>
-                <span className="text-muted-foreground">({reviews.length})</span>
+                <StarsDisplay value={avgOverall} size={16} />
+                <span className="font-medium tabular-nums">{avgOverall.toFixed(1)}</span>
+                <span className="text-muted-foreground">★ ({reviews.length})</span>
               </div>
             )}
           </div>
@@ -367,16 +343,16 @@ const BuildingDetail = () => {
             <form onSubmit={submitReview} className="space-y-4 rounded-lg border border-border p-4">
               <div>
                 <Label className="mb-1 block">Overall rating</Label>
-                <StarRating value={form.overall} onChange={(v) => setForm({ ...form, overall: v })} size={24} />
+                <StarsInput value={form.overall} onChange={(v) => setForm({ ...form, overall: v })} size={28} />
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
                 {REVIEW_CATEGORIES.map((c) => (
                   <div key={c.key}>
                     <Label className="mb-1 block text-sm">{c.label}</Label>
-                    <StarRating
+                    <StarsInput
                       value={form[c.key as ReviewCategoryKey]}
                       onChange={(v) => setForm({ ...form, [c.key]: v })}
-                      size={18}
+                      size={22}
                     />
                   </div>
                 ))}
@@ -429,7 +405,8 @@ const BuildingDetail = () => {
                     <div>
                       <div className="font-medium">{r.profiles?.display_name ?? "Anonymous"}</div>
                       <div className="flex items-center gap-2 mt-1">
-                        <StarRating value={r.overall} size={16} />
+                        <StarsDisplay value={r.overall} size={16} />
+                        <span className="text-sm font-medium tabular-nums">{r.overall.toFixed(1)}</span>
                         <span className="text-xs text-muted-foreground">
                           {new Date(r.created_at).toLocaleDateString()}
                           {r.tenancy_period ? ` · ${r.tenancy_period}` : ""}
@@ -459,7 +436,7 @@ const BuildingDetail = () => {
                     {REVIEW_CATEGORIES.map((c) => (
                       <div key={c.key} className="text-xs">
                         <div className="text-muted-foreground">{c.label}</div>
-                        <StarRating value={r[c.key as ReviewCategoryKey]} size={12} />
+                        <StarsDisplay value={r[c.key as ReviewCategoryKey]} size={12} />
                       </div>
                     ))}
                   </div>

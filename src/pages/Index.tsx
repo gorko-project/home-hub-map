@@ -8,6 +8,7 @@ import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/Spinner";
+import { StarsDisplay } from "@/components/Stars";
 import { supabase } from "@/integrations/supabase/client";
 
 const GOOGLE_MAPS_API_KEY = "AIzaSyA7otCuVOVby8vCvbGr7F1qKFahE4AeCa4";
@@ -130,7 +131,7 @@ const Index = () => {
                         className="text-[11px] font-normal whitespace-nowrap"
                         style={{ color: "#000", textShadow: "0 1px 2px rgba(255,255,255,0.95), 0 0 2px rgba(255,255,255,0.95)" }}
                       >
-                        {b.composite_score != null ? Number(b.composite_score).toFixed(1) : "—"}
+                        {b.composite_score != null ? `${Number(b.composite_score).toFixed(1)} ★` : "—"}
                       </span>
                     )}
                   </div>
@@ -152,11 +153,16 @@ const Index = () => {
                   )}
                   <h3 className="font-semibold text-base">{selected.name}</h3>
                   {selected.address && <p className="text-sm text-muted-foreground">{selected.address}</p>}
-                  <p className="text-sm">
-                    Score:{" "}
-                    <span className="font-medium">
-                      {selected.composite_score != null ? `${Number(selected.composite_score).toFixed(1)}/10` : "N/A"}
-                    </span>
+                  <p className="text-sm flex items-center gap-1">
+                    <span>Score:</span>
+                    {selected.composite_score != null ? (
+                      <>
+                        <StarsDisplay value={Number(selected.composite_score)} size={14} />
+                        <span className="font-medium tabular-nums">{Number(selected.composite_score).toFixed(1)}</span>
+                      </>
+                    ) : (
+                      <span className="font-medium">N/A</span>
+                    )}
                   </p>
                   <Button asChild size="sm" className="w-full">
                     <Link to={`/buildings/${selected.slug}`}>View details</Link>
