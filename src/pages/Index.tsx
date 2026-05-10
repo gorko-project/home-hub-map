@@ -152,11 +152,16 @@ const Index = () => {
                   )}
                   <h3 className="font-semibold text-base">{selected.name}</h3>
                   {selected.address && <p className="text-sm text-muted-foreground">{selected.address}</p>}
-                  <p className="text-sm">
-                    Score:{" "}
-                    <span className="font-medium">
-                      {selected.composite_score != null ? `${Number(selected.composite_score).toFixed(1)}/10` : "N/A"}
-                    </span>
+                  <p className="text-sm flex items-center gap-1">
+                    <span>Score:</span>
+                    {selected.composite_score != null ? (
+                      <>
+                        <StarsDisplay value={Number(selected.composite_score)} size={14} />
+                        <span className="font-medium tabular-nums">{Number(selected.composite_score).toFixed(1)}</span>
+                      </>
+                    ) : (
+                      <span className="font-medium">N/A</span>
+                    )}
                   </p>
                   <Button asChild size="sm" className="w-full">
                     <Link to={`/buildings/${selected.slug}`}>View details</Link>
