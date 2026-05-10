@@ -291,15 +291,18 @@ const BuildingDetail = () => {
         <div className="grid gap-8 md:grid-cols-2">
           <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
             <h2 className="text-lg font-semibold mb-4">Rating</h2>
-            <div className="mb-6 flex items-baseline gap-2">
+            <div className="mb-6 flex items-center gap-3">
               <span className="text-5xl font-bold tabular-nums">
                 {building.composite_score != null ? Number(building.composite_score).toFixed(1) : "—"}
               </span>
-              <span className="text-xl text-muted-foreground">/10</span>
+              <span className="text-xl text-muted-foreground">/ 5</span>
+              {building.composite_score != null && (
+                <StarsDisplay value={Number(building.composite_score)} size={22} />
+              )}
             </div>
-            <div className="space-y-4">
+            <div className="space-y-3">
               {CATEGORIES.map((c) => (
-                <ScoreBar key={c.key} label={c.label} score={scores ? (scores[c.key] as number | null) : null} />
+                <ScoreRow key={c.key} label={c.label} score={scores ? (scores[c.key] as number | null) : null} />
               ))}
             </div>
           </div>
