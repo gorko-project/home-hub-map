@@ -296,27 +296,43 @@ const Admin = () => {
     return null;
   }
 
-  const ScoreSlider = ({
+  const ScoreInput = ({
     label,
     field,
   }: {
     label: string;
     field: keyof ScoresState;
-  }) => (
-    <div>
-      <div className="flex justify-between text-sm">
+  }) => {
+    const val = scores[field];
+    return (
+      <div className="space-y-1.5">
         <Label>{label}</Label>
-        <span className="font-medium">{scores[field]}</span>
+        <div className="flex items-center gap-3">
+          <Input
+            type="number"
+            min={1}
+            max={5}
+            step={0.1}
+            value={Number.isFinite(val) ? val : ""}
+            onChange={(e) => {
+              const raw = e.target.value;
+              if (raw === "") {
+                setScores((s) => ({ ...s, [field]: 0 }));
+                return;
+              }
+              const n = Math.max(1, Math.min(5, parseFloat(raw)));
+              if (!Number.isNaN(n)) setScores((s) => ({ ...s, [field]: n }));
+            }}
+            className="w-24"
+          />
+          <StarsDisplay value={val} size={18} />
+          <span className="text-sm text-muted-foreground tabular-nums">
+            {val.toFixed(1)} / 5
+          </span>
+        </div>
       </div>
-      <Slider
-        min={1}
-        max={10}
-        step={1}
-        value={[scores[field]]}
-        onValueChange={(v) => setScores((s) => ({ ...s, [field]: v[0] }))}
-      />
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="min-h-screen bg-background">
