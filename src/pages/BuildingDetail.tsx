@@ -200,6 +200,10 @@ const BuildingDetail = () => {
   const submitReview = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!userId || !building) return;
+    if (form.overall < 1) {
+      toast.error("Please select an overall star rating");
+      return;
+    }
     if (form.comment.trim().length < 20) {
       toast.error("Comment must be at least 20 characters");
       return;
