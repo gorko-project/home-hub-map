@@ -199,11 +199,11 @@ const Admin = () => {
     if (data) {
       setEditingScoreId(data.id);
       setScores({
-        management: data.management ?? 5,
-        noise: data.noise ?? 5,
-        value: data.value ?? 5,
-        location: data.location ?? 5,
-        condition: data.condition ?? 5,
+        management: Number(data.management ?? 2.5),
+        noise: Number(data.noise ?? 2.5),
+        value: Number(data.value ?? 2.5),
+        location: Number(data.location ?? 2.5),
+        condition: Number(data.condition ?? 2.5),
       });
     } else {
       setEditingScoreId(null);
