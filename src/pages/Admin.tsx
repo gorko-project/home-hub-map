@@ -469,7 +469,7 @@ const Admin = () => {
                   <TableRow key={b.id}>
                     <TableCell className="font-medium">{b.name}</TableCell>
                     <TableCell>{b.neighborhood ?? "—"}</TableCell>
-                    <TableCell>{b.composite_score != null ? Number(b.composite_score).toFixed(1) : "—"}</TableCell>
+                    <TableCell>{b.composite_score != null ? `${Number(b.composite_score).toFixed(1)} ★` : "—"}</TableCell>
                     <TableCell>{b.status}</TableCell>
                     <TableCell className="text-right space-x-2">
                       <Button size="sm" variant="outline" onClick={() => startEdit(b)}>Edit</Button>
