@@ -130,7 +130,7 @@ const Index = () => {
                         className="text-[11px] font-normal whitespace-nowrap"
                         style={{ color: "#000", textShadow: "0 1px 2px rgba(255,255,255,0.95), 0 0 2px rgba(255,255,255,0.95)" }}
                       >
-                        {b.composite_score != null ? Number(b.composite_score).toFixed(1) : "—"}
+                        {b.composite_score != null ? `${Number(b.composite_score).toFixed(1)} ★` : "—"}
                       </span>
                     )}
                   </div>
