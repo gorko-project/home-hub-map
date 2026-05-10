@@ -323,9 +323,9 @@ const BuildingDetail = () => {
             <h2 className="text-lg font-semibold">Reviews</h2>
             {avgOverall != null && (
               <div className="flex items-center gap-2 text-sm">
-                <StarRating value={Math.round(avgOverall)} size={16} />
-                <span className="font-medium">{avgOverall.toFixed(1)}</span>
-                <span className="text-muted-foreground">({reviews.length})</span>
+                <StarsDisplay value={avgOverall} size={16} />
+                <span className="font-medium tabular-nums">{avgOverall.toFixed(1)}</span>
+                <span className="text-muted-foreground">★ ({reviews.length})</span>
               </div>
             )}
           </div>
