@@ -419,16 +419,20 @@ const Admin = () => {
               </div>
 
               <div className="md:col-span-2 grid gap-4 md:grid-cols-2 pt-4 border-t">
-                <ScoreSlider label="Management (30%)" field="management" />
-                <ScoreSlider label="Quietness (20%)" field="noise" />
-                <ScoreSlider label="Value for Money (20%)" field="value" />
-                <ScoreSlider label="Location (15%)" field="location" />
-                <ScoreSlider label="Building Condition (15%)" field="condition" />
+                <ScoreInput label="Management (30%)" field="management" />
+                <ScoreInput label="Quietness (20%)" field="noise" />
+                <ScoreInput label="Value for Money (20%)" field="value" />
+                <ScoreInput label="Location (15%)" field="location" />
+                <ScoreInput label="Building Condition (15%)" field="condition" />
               </div>
 
               <div className="md:col-span-2 flex items-center justify-between rounded-lg bg-muted p-4">
                 <span className="text-sm">Composite score</span>
-                <span className="text-2xl font-bold">{composite.toFixed(1)}</span>
+                <div className="flex items-center gap-3">
+                  <StarsDisplay value={composite} size={22} />
+                  <span className="text-2xl font-bold tabular-nums">{composite.toFixed(1)}</span>
+                  <span className="text-sm text-muted-foreground">/ 5</span>
+                </div>
               </div>
 
               <div className="md:col-span-2 flex gap-2">
