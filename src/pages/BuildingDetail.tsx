@@ -345,10 +345,10 @@ const BuildingDetail = () => {
                 {REVIEW_CATEGORIES.map((c) => (
                   <div key={c.key}>
                     <Label className="mb-1 block text-sm">{c.label}</Label>
-                    <StarRating
+                    <StarsInput
                       value={form[c.key as ReviewCategoryKey]}
                       onChange={(v) => setForm({ ...form, [c.key]: v })}
-                      size={18}
+                      size={22}
                     />
                   </div>
                 ))}
