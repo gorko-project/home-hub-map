@@ -339,7 +339,7 @@ const BuildingDetail = () => {
             <form onSubmit={submitReview} className="space-y-4 rounded-lg border border-border p-4">
               <div>
                 <Label className="mb-1 block">Overall rating</Label>
-                <StarRating value={form.overall} onChange={(v) => setForm({ ...form, overall: v })} size={24} />
+                <StarsInput value={form.overall} onChange={(v) => setForm({ ...form, overall: v })} size={28} />
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
                 {REVIEW_CATEGORIES.map((c) => (
