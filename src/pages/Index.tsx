@@ -109,29 +109,58 @@ const Index = () => {
                 key={b.id}
                 position={{ lat: Number(b.latitude), lng: Number(b.longitude) }}
                 onClick={() => setSelected(b)}
+                zIndex={1000}
               >
-                <div
-                  className="flex flex-col items-center gap-0.5 cursor-pointer transition-transform duration-150 hover:scale-105 bg-white rounded-full px-2 py-1"
-                  style={{
-                    border: "1px solid #f97316",
-                    boxShadow: "0 2px 6px rgba(0,0,0,0.18)",
-                    maxHeight: 60,
-                  }}
-                >
-                  <div className="text-[11px] font-semibold tabular-nums text-ink leading-none">
-                    {b.composite_score != null ? `${Number(b.composite_score).toFixed(1)} ★` : "—"}
+                <div className="flex flex-col items-center cursor-pointer">
+                  {zoom >= 14 && (
+                    <div
+                      className="bg-white whitespace-nowrap max-w-[140px] truncate"
+                      style={{
+                        borderRadius: 4,
+                        padding: "2px 7px",
+                        fontSize: 11,
+                        fontWeight: 500,
+                        color: "#1a1a1a",
+                        boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+                        marginBottom: 5,
+                      }}
+                    >
+                      {b.name}
+                    </div>
+                  )}
+                  <div
+                    className="bg-white flex items-center gap-1 transition-transform duration-150 hover:scale-105"
+                    style={{
+                      border: "1.5px solid #f97316",
+                      borderRadius: 6,
+                      padding: "2px 6px",
+                      boxShadow: "0 2px 4px rgba(0,0,0,0.15)",
+                    }}
+                  >
+                    <img src={homeMarker} alt="" style={{ width: 11, height: 11, display: "block" }} />
+                    <span
+                      style={{
+                        fontSize: 11,
+                        fontWeight: 500,
+                        color: "#f97316",
+                        lineHeight: 1,
+                        fontVariantNumeric: "tabular-nums",
+                      }}
+                    >
+                      {b.composite_score != null ? Number(b.composite_score).toFixed(1) : "—"}
+                    </span>
                   </div>
                   <div
-                    className="h-4 w-4 rounded-full flex items-center justify-center"
-                    style={{ background: "#f97316" }}
-                  >
-                    <img src={homeMarker} alt="" className="h-2.5 w-2.5 block" />
-                  </div>
-                  {zoom >= 14 && (
-                    <span className="text-[10px] font-medium whitespace-nowrap max-w-[120px] truncate text-ink leading-none">
-                      {b.name}
-                    </span>
-                  )}
+                    style={{
+                      width: 0,
+                      height: 0,
+                      borderLeft: "4px solid transparent",
+                      borderRight: "4px solid transparent",
+                      borderTop: "5px solid #f97316",
+                      marginTop: -1,
+                      filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.15))",
+                    }}
+                  />
                 </div>
               </AdvancedMarker>
             ))}
