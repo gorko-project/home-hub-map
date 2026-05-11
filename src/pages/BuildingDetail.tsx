@@ -73,15 +73,18 @@ type Review = {
   profiles?: { display_name: string | null } | null;
 };
 
-const ScoreRow = ({ label, score }: { label: string; score: number | null }) => {
+const ScoreBar = ({ label, score }: { label: string; score: number | null }) => {
+  const pct = score != null ? Math.max(0, Math.min(1, score / 5)) * 100 : 0;
   return (
-    <div className="flex items-center justify-between text-sm">
-      <span className="font-medium">{label}</span>
-      <div className="flex items-center gap-2">
-        <StarsDisplay value={score ?? 0} size={16} />
-        <span className="text-muted-foreground tabular-nums w-10 text-right">
-          {score != null ? Number(score).toFixed(1) : "—"}
+    <div className="space-y-1">
+      <div className="flex items-center justify-between text-[13px]">
+        <span className="text-ink font-medium">{label}</span>
+        <span className="text-ink-muted tabular-nums">
+          {score != null ? `${Number(score).toFixed(1)} / 5` : "—"}
         </span>
+      </div>
+      <div className="h-1.5 w-full rounded-full bg-hairline overflow-hidden">
+        <div className="h-full rounded-full bg-brand transition-all" style={{ width: `${pct}%` }} />
       </div>
     </div>
   );
