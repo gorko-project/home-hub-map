@@ -388,25 +388,32 @@ const BuildingDetail = () => {
             </p>
           ) : showForm ? (
             <form onSubmit={submitReview} className="space-y-4 rounded-[12px] border border-hairline p-5">
-              <div>
-                <Label className="mb-1.5 block text-[13px] text-ink">Overall rating</Label>
-                <StarsInput value={form.overall} onChange={(v) => setForm({ ...form, overall: v })} size={24} />
+              <div
+                className="rounded-[12px] border border-brand/30 p-4"
+                style={{ background: "#fff7ed" }}
+              >
+                <Label className="mb-2 block text-[16px] font-bold text-ink">Overall rating</Label>
+                <StarsInput value={form.overall} onChange={(v) => setForm({ ...form, overall: v })} size={28} />
               </div>
-              <div className="grid gap-3 sm:grid-cols-2">
-                {REVIEW_CATEGORIES.map((c, i) => {
-                  // building_condition full width as last item
-                  const isFull = c.key === "building_condition";
-                  return (
-                    <div key={c.key} className={isFull ? "sm:col-span-2" : ""}>
-                      <Label className="mb-1 block text-[13px] text-ink">{c.label}</Label>
-                      <StarsInput
-                        value={form[c.key as ReviewCategoryKey]}
-                        onChange={(v) => setForm({ ...form, [c.key]: v })}
-                        size={20}
-                      />
-                    </div>
-                  );
-                })}
+              <div className="grid gap-3 grid-cols-2">
+                {REVIEW_CATEGORIES.filter((c) => c.key !== "building_condition" && c.key).slice(0, 4).map((c) => (
+                  <div key={c.key}>
+                    <Label className="mb-1 block text-[14px] text-ink">{c.label}</Label>
+                    <StarsInput
+                      value={form[c.key as ReviewCategoryKey]}
+                      onChange={(v) => setForm({ ...form, [c.key]: v })}
+                      size={20}
+                    />
+                  </div>
+                ))}
+                <div className="col-span-2">
+                  <Label className="mb-1 block text-[14px] text-ink">Building Condition</Label>
+                  <StarsInput
+                    value={form.building_condition}
+                    onChange={(v) => setForm({ ...form, building_condition: v })}
+                    size={20}
+                  />
+                </div>
               </div>
               <div>
                 <Label htmlFor="comment" className="text-[13px] text-ink">Comment (min 20 characters)</Label>
