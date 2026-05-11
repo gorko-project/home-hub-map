@@ -306,6 +306,8 @@ const Admin = () => {
         latitude: form.latitude ? Number(form.latitude) : null,
         longitude: form.longitude ? Number(form.longitude) : null,
         admin_notes: form.admin_notes || null,
+        summary_pros: form.summary_pros || null,
+        summary_cons: form.summary_cons || null,
         photo_url: form.photo_url || null,
         status: form.status,
         composite_score: compositeNum,
