@@ -1,7 +1,8 @@
 /// <reference types="google.maps" />
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
-import { APIProvider, Map, AdvancedMarker, Pin, InfoWindow, useMap, useMapsLibrary } from "@vis.gl/react-google-maps";
+import { APIProvider, Map, InfoWindow, useMap, useMapsLibrary } from "@vis.gl/react-google-maps";
 import { Search, X } from "lucide-react";
 import homeMarker from "@/assets/home-marker.svg";
 import { Navbar } from "@/components/Navbar";
