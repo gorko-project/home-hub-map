@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { slugify, computeComposite } from "@/lib/slug";
+import { slugify } from "@/lib/slug";
 import { Spinner } from "@/components/Spinner";
 import {
   AlertDialog,
@@ -53,11 +53,12 @@ type BuildingRow = {
 };
 
 type ScoresState = {
-  management: number;
-  noise: number;
-  value: number;
-  location: number;
-  condition: number;
+  management: string;
+  noise: string;
+  value: string;
+  location: string;
+  condition: string;
+  composite: string;
 };
 
 const blankForm = {
@@ -73,11 +74,12 @@ const blankForm = {
 };
 
 const blankScores: ScoresState = {
-  management: 2.5,
-  noise: 2.5,
-  value: 2.5,
-  location: 2.5,
-  condition: 2.5,
+  management: "2.5",
+  noise: "2.5",
+  value: "2.5",
+  location: "2.5",
+  condition: "2.5",
+  composite: "2.5",
 };
 
 const Admin = () => {
