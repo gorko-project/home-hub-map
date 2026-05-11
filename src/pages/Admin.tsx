@@ -235,6 +235,11 @@ const Admin = () => {
     }
     setSaving(true);
     try {
+      const parseScore = (s: string) => {
+        const n = parseFloat(s);
+        return Number.isFinite(n) ? n : null;
+      };
+      const compositeNum = parseScore(scores.composite);
       const payload = {
         name: form.name,
         slug: form.slug,
@@ -245,7 +250,7 @@ const Admin = () => {
         admin_notes: form.admin_notes || null,
         photo_url: form.photo_url || null,
         status: form.status,
-        composite_score: Number(composite.toFixed(2)),
+        composite_score: compositeNum,
       };
 
       let buildingId = editingId;
@@ -264,7 +269,14 @@ const Admin = () => {
 
       if (!buildingId) throw new Error("Missing building id");
 
-      const scorePayload = { ...scores, building_id: buildingId };
+      const scorePayload = {
+        building_id: buildingId,
+        management: parseScore(scores.management),
+        noise: parseScore(scores.noise),
+        value: parseScore(scores.value),
+        location: parseScore(scores.location),
+        condition: parseScore(scores.condition),
+      };
       if (editingScoreId) {
         const { error } = await supabase
           .from("building_scores")
