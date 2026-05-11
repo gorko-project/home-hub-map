@@ -269,123 +269,135 @@ const BuildingDetail = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <section className="relative h-[420px] w-full overflow-hidden bg-muted">
+      <section className="relative h-[240px] w-full overflow-hidden bg-muted">
         {building.photo_url ? (
           <img src={building.photo_url} alt={building.name} className="h-full w-full object-cover" />
         ) : (
           <div className="h-full w-full bg-gradient-to-br from-muted to-muted-foreground/20" />
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/15 to-transparent" />
 
         <Link
           to="/"
-          className="absolute top-4 left-4 inline-flex items-center gap-2 rounded-full bg-background/90 px-4 py-2 text-sm font-medium shadow-md hover:bg-background backdrop-blur"
+          className="absolute top-4 left-4 inline-flex items-center gap-2 rounded-full bg-white/95 px-3 py-1.5 text-[13px] font-medium text-ink shadow hover:bg-white"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to map
         </Link>
 
-        <div className="absolute bottom-6 left-6 right-6 text-white">
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight drop-shadow-lg">{building.name}</h1>
-          <p className="mt-2 text-base md:text-lg text-white/90 drop-shadow">
-            {building.address}
-            {building.neighborhood ? ` · ${building.neighborhood}` : ""}
-          </p>
+        <div className="absolute bottom-5 left-6 right-6 text-white">
+          <h1 className="text-[28px] md:text-[34px] font-bold tracking-tight drop-shadow-lg leading-tight">{building.name}</h1>
+          {(building.address || building.neighborhood) && (
+            <p className="mt-1 text-[14px] text-white/90 drop-shadow">
+              {building.address}
+              {building.neighborhood ? ` · ${building.neighborhood}` : ""}
+            </p>
+          )}
         </div>
       </section>
 
-      <section className="container max-w-6xl py-10">
-        <div className="grid gap-8 md:grid-cols-2">
-          <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
-            <h2 className="text-lg font-semibold mb-4">Rating</h2>
-            <div className="mb-6 flex items-center gap-3">
-              <span className="text-5xl font-bold tabular-nums">
+      <section className="container max-w-6xl py-8">
+        <div className="grid gap-5 md:grid-cols-2">
+          <div className="rounded-[12px] border border-hairline bg-card p-5 shadow-sm">
+            <h2 className="text-[18px] font-semibold text-ink mb-4">Rating</h2>
+            <div className="mb-5 flex items-center gap-3">
+              <span className="text-5xl font-bold tabular-nums text-ink">
                 {building.composite_score != null ? Number(building.composite_score).toFixed(1) : "—"}
               </span>
-              <span className="text-xl text-muted-foreground">/ 5</span>
-              {building.composite_score != null && (
-                <StarsDisplay value={Number(building.composite_score)} size={22} />
-              )}
+              <div className="flex flex-col">
+                <StarsDisplay value={building.composite_score ?? 0} size={20} />
+                <span className="text-[12px] text-ink-muted mt-1">out of 5</span>
+              </div>
             </div>
             <div className="space-y-3">
               {CATEGORIES.map((c) => (
-                <ScoreRow key={c.key} label={c.label} score={scores ? (scores[c.key] as number | null) : null} />
+                <ScoreBar key={c.key} label={c.label} score={scores ? (scores[c.key] as number | null) : null} />
               ))}
             </div>
           </div>
 
-          <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
-            <h2 className="text-lg font-semibold mb-4">Summary</h2>
+          <div className="rounded-[12px] border border-hairline bg-card p-5 shadow-sm">
+            <h2 className="text-[18px] font-semibold text-ink mb-4">Summary</h2>
             {building.admin_notes ? (
               <div
-                className="text-sm leading-relaxed text-foreground/90 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:my-2 [&_strong]:font-semibold [&_em]:italic"
+                className="text-[14px] leading-relaxed text-ink/90 [&_ul]:list-none [&_ul]:pl-0 [&_ul]:space-y-1.5 [&_ul_li]:pl-6 [&_ul_li]:relative [&_ul_li]:before:content-['✅'] [&_ul_li]:before:absolute [&_ul_li]:before:left-0 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:my-2 [&_strong]:font-semibold [&_em]:italic [&_em]:text-ink-muted [&_em]:text-[12px]"
                 dangerouslySetInnerHTML={{ __html: building.admin_notes }}
               />
             ) : (
-              <p className="text-sm text-muted-foreground">No notes yet.</p>
+              <p className="text-[14px] text-ink-muted">No notes yet.</p>
             )}
           </div>
         </div>
 
         {/* Reviews */}
-        <div className="mt-10 rounded-xl border border-border bg-card p-6 shadow-sm space-y-6">
+        <div className="mt-6 rounded-[12px] border border-hairline bg-card p-5 shadow-sm space-y-5">
           <div className="flex items-baseline justify-between flex-wrap gap-2">
-            <h2 className="text-lg font-semibold">Reviews</h2>
+            <h2 className="text-[18px] font-semibold text-ink">Reviews</h2>
             {avgOverall != null && (
-              <div className="flex items-center gap-2 text-sm">
+              <div className="flex items-center gap-2 text-[13px]">
                 <StarsDisplay value={avgOverall} size={16} />
-                <span className="font-medium tabular-nums">{avgOverall.toFixed(1)}</span>
-                <span className="text-muted-foreground">★ ({reviews.length})</span>
+                <span className="font-semibold tabular-nums text-ink">{avgOverall.toFixed(1)}</span>
+                <span className="text-ink-muted">({reviews.length})</span>
               </div>
             )}
           </div>
 
           {/* Form / login prompt */}
           {!userId ? (
-            <p className="text-sm text-muted-foreground">
+            <p className="text-[14px] text-ink-muted">
               <Link to="/auth" className="underline">Log in</Link> to write a review.
             </p>
           ) : showForm ? (
-            <form onSubmit={submitReview} className="space-y-4 rounded-lg border border-border p-4">
+            <form onSubmit={submitReview} className="space-y-4 rounded-[12px] border border-hairline p-5">
               <div>
-                <Label className="mb-1 block">Overall rating</Label>
-                <StarsInput value={form.overall} onChange={(v) => setForm({ ...form, overall: v })} size={28} />
+                <Label className="mb-1.5 block text-[13px] text-ink">Overall rating</Label>
+                <StarsInput value={form.overall} onChange={(v) => setForm({ ...form, overall: v })} size={24} />
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
-                {REVIEW_CATEGORIES.map((c) => (
-                  <div key={c.key}>
-                    <Label className="mb-1 block text-sm">{c.label}</Label>
-                    <StarsInput
-                      value={form[c.key as ReviewCategoryKey]}
-                      onChange={(v) => setForm({ ...form, [c.key]: v })}
-                      size={22}
-                    />
-                  </div>
-                ))}
+                {REVIEW_CATEGORIES.map((c, i) => {
+                  // building_condition full width as last item
+                  const isFull = c.key === "building_condition";
+                  return (
+                    <div key={c.key} className={isFull ? "sm:col-span-2" : ""}>
+                      <Label className="mb-1 block text-[13px] text-ink">{c.label}</Label>
+                      <StarsInput
+                        value={form[c.key as ReviewCategoryKey]}
+                        onChange={(v) => setForm({ ...form, [c.key]: v })}
+                        size={20}
+                      />
+                    </div>
+                  );
+                })}
               </div>
               <div>
-                <Label htmlFor="comment">Comment (min 20 characters)</Label>
+                <Label htmlFor="comment" className="text-[13px] text-ink">Comment (min 20 characters)</Label>
                 <Textarea
                   id="comment"
                   rows={4}
                   value={form.comment}
                   onChange={(e) => setForm({ ...form, comment: e.target.value })}
                   required
+                  className="mt-1"
                 />
               </div>
               <div>
-                <Label htmlFor="tenancy">Tenancy period (optional)</Label>
+                <Label htmlFor="tenancy" className="text-[13px] text-ink">Tenancy period (optional)</Label>
                 <Input
                   id="tenancy"
                   placeholder="e.g. 2022-2024"
                   value={form.tenancy_period}
                   onChange={(e) => setForm({ ...form, tenancy_period: e.target.value })}
+                  className="mt-1"
                 />
               </div>
               <div className="flex gap-2">
-                <Button type="submit" disabled={submitting}>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="flex-1 rounded-[12px] bg-brand text-white text-[14px] font-semibold py-2.5 hover:bg-brand/90 transition-colors disabled:opacity-60"
+                >
                   {submitting ? "Saving…" : myReview ? "Update review" : "Submit review"}
-                </Button>
+                </button>
                 {myReview && (
                   <Button type="button" variant="outline" onClick={() => setEditing(false)}>
                     Cancel
@@ -394,26 +406,26 @@ const BuildingDetail = () => {
               </div>
             </form>
           ) : myReview ? (
-            <div className="rounded-lg border border-border p-4 space-y-2">
-              <p className="text-sm text-muted-foreground">Your review is shown below.</p>
+            <div className="rounded-[12px] border border-hairline p-4 space-y-2">
+              <p className="text-[13px] text-ink-muted">Your review is shown below.</p>
               <Button size="sm" variant="outline" onClick={() => setEditing(true)}>Edit my review</Button>
             </div>
           ) : null}
 
           {/* Review list */}
-          <div className="space-y-4">
+          <div className="space-y-3">
             {reviews.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No reviews yet. Be the first!</p>
+              <p className="text-[14px] text-ink-muted">No reviews yet. Be the first!</p>
             ) : (
               reviews.map((r) => (
-                <div key={r.id} className="rounded-lg border border-border p-4 space-y-3">
+                <div key={r.id} className="rounded-[12px] border border-hairline p-5 space-y-3">
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <div className="font-medium">{r.profiles?.display_name ?? "Anonymous"}</div>
+                      <div className="font-semibold text-[14px] text-ink">{r.profiles?.display_name ?? "Anonymous"}</div>
                       <div className="flex items-center gap-2 mt-1">
-                        <StarsDisplay value={r.overall} size={16} />
-                        <span className="text-sm font-medium tabular-nums">{r.overall.toFixed(1)}</span>
-                        <span className="text-xs text-muted-foreground">
+                        <StarsDisplay value={r.overall} size={14} />
+                        <span className="text-[13px] font-medium tabular-nums text-ink">{r.overall.toFixed(1)}</span>
+                        <span className="text-[12px] text-ink-muted">
                           {new Date(r.created_at).toLocaleDateString()}
                           {r.tenancy_period ? ` · ${r.tenancy_period}` : ""}
                         </span>
@@ -437,15 +449,7 @@ const BuildingDetail = () => {
                       </AlertDialog>
                     )}
                   </div>
-                  <p className="text-sm whitespace-pre-wrap">{r.comment}</p>
-                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 pt-2 border-t border-border">
-                    {REVIEW_CATEGORIES.map((c) => (
-                      <div key={c.key} className="text-xs">
-                        <div className="text-muted-foreground">{c.label}</div>
-                        <StarsDisplay value={r[c.key as ReviewCategoryKey]} size={12} />
-                      </div>
-                    ))}
-                  </div>
+                  <p className="text-[14px] text-ink/90 whitespace-pre-wrap">{r.comment}</p>
                 </div>
               ))
             )}
