@@ -125,6 +125,8 @@ export type Database = {
           photo_url: string | null
           slug: string
           status: string
+          summary_cons: string | null
+          summary_pros: string | null
         }
         Insert: {
           address?: string | null
@@ -139,6 +141,8 @@ export type Database = {
           photo_url?: string | null
           slug: string
           status?: string
+          summary_cons?: string | null
+          summary_pros?: string | null
         }
         Update: {
           address?: string | null
@@ -153,6 +157,8 @@ export type Database = {
           photo_url?: string | null
           slug?: string
           status?: string
+          summary_cons?: string | null
+          summary_pros?: string | null
         }
         Relationships: []
       }

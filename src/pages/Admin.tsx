@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { RichTextEditor } from "@/components/RichTextEditor";
 import { StarsDisplay } from "@/components/Stars";
@@ -48,6 +49,8 @@ type BuildingRow = {
   longitude: number | null;
   status: string;
   admin_notes: string | null;
+  summary_pros: string | null;
+  summary_cons: string | null;
   photo_url: string | null;
   composite_score: number | null;
 };
@@ -69,6 +72,8 @@ const blankForm = {
   latitude: "",
   longitude: "",
   admin_notes: "",
+  summary_pros: "",
+  summary_cons: "",
   photo_url: "",
   status: "draft" as "draft" | "published",
 };
@@ -246,6 +251,8 @@ const Admin = () => {
       latitude: b.latitude != null ? String(b.latitude) : "",
       longitude: b.longitude != null ? String(b.longitude) : "",
       admin_notes: b.admin_notes ?? "",
+      summary_pros: b.summary_pros ?? "",
+      summary_cons: b.summary_cons ?? "",
       photo_url: b.photo_url ?? "",
       status: (b.status as "draft" | "published") ?? "draft",
     });
@@ -300,6 +307,8 @@ const Admin = () => {
         latitude: form.latitude ? Number(form.latitude) : null,
         longitude: form.longitude ? Number(form.longitude) : null,
         admin_notes: form.admin_notes || null,
+        summary_pros: form.summary_pros || null,
+        summary_cons: form.summary_cons || null,
         photo_url: form.photo_url || null,
         status: form.status,
         composite_score: compositeNum,
@@ -420,11 +429,37 @@ const Admin = () => {
               </div>
 
               <div className="md:col-span-2">
-                <Label htmlFor="notes">Admin notes</Label>
+                <Label htmlFor="notes">Admin notes (internal)</Label>
                 <RichTextEditor
                   value={form.admin_notes}
                   onChange={(html) => setForm({ ...form, admin_notes: html })}
-                  placeholder="Add notes about this building…"
+                  placeholder="Internal notes (not shown publicly)…"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="pros" className="flex items-center gap-1.5">
+                  <span className="text-green-600">✅</span> Pros
+                </Label>
+                <Textarea
+                  id="pros"
+                  rows={5}
+                  placeholder="Write one item per line"
+                  value={form.summary_pros}
+                  onChange={(e) => setForm({ ...form, summary_pros: e.target.value })}
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="cons" className="flex items-center gap-1.5">
+                  <span className="text-red-600">❌</span> Cons
+                </Label>
+                <Textarea
+                  id="cons"
+                  rows={5}
+                  placeholder="Write one item per line"
+                  value={form.summary_cons}
+                  onChange={(e) => setForm({ ...form, summary_cons: e.target.value })}
                 />
               </div>
 

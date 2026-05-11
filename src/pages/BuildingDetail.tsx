@@ -30,6 +30,8 @@ type Building = {
   photo_url: string | null;
   composite_score: number | null;
   admin_notes: string | null;
+  summary_pros: string | null;
+  summary_cons: string | null;
 };
 
 type Scores = {
@@ -137,7 +139,7 @@ const BuildingDetail = () => {
       setLoading(true);
       const { data: b } = await supabase
         .from("buildings")
-        .select("id,name,slug,address,neighborhood,photo_url,composite_score,admin_notes")
+        .select("id,name,slug,address,neighborhood,photo_url,composite_score,admin_notes,summary_pros,summary_cons")
         .eq("slug", slug)
         .maybeSingle();
       setBuilding(b);
@@ -297,8 +299,8 @@ const BuildingDetail = () => {
       </section>
 
       <section className="container max-w-6xl py-8">
-        <div className="grid gap-5 md:grid-cols-2">
-          <div className="rounded-[12px] border border-hairline bg-card p-5 shadow-sm">
+        <div className="grid gap-5 md:grid-cols-2 items-stretch">
+          <div className="rounded-[12px] border border-hairline bg-card p-5 shadow-sm flex flex-col h-full">
             <h2 className="text-[18px] font-semibold text-ink mb-4">Rating</h2>
             <div className="mb-5 flex items-center gap-3">
               <span className="text-5xl font-bold tabular-nums text-ink">
@@ -314,19 +316,56 @@ const BuildingDetail = () => {
                 <ScoreBar key={c.key} label={c.label} score={scores ? (scores[c.key] as number | null) : null} />
               ))}
             </div>
+            <div className="mt-auto pt-4 text-[12px] text-ink-muted border-t border-hairline mt-5">
+              {reviews.length} {reviews.length === 1 ? "review" : "reviews"} · Admin curated rating
+            </div>
           </div>
 
-          <div className="rounded-[12px] border border-hairline bg-card p-5 shadow-sm">
-            <h2 className="text-[18px] font-semibold text-ink mb-4">Summary</h2>
-            {building.admin_notes ? (
-              <div
-                className="text-[14px] leading-relaxed text-ink/90 [&_ul]:list-none [&_ul]:pl-0 [&_ul]:space-y-1.5 [&_ul_li]:pl-6 [&_ul_li]:relative [&_ul_li]:before:content-['✅'] [&_ul_li]:before:absolute [&_ul_li]:before:left-0 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:my-2 [&_strong]:font-semibold [&_em]:italic [&_em]:text-ink-muted [&_em]:text-[12px]"
-                dangerouslySetInnerHTML={{ __html: building.admin_notes }}
-              />
-            ) : (
-              <p className="text-[14px] text-ink-muted">No notes yet.</p>
-            )}
-          </div>
+          {(() => {
+            const pros = (building.summary_pros ?? "").split("\n").map((s) => s.trim()).filter(Boolean);
+            const cons = (building.summary_cons ?? "").split("\n").map((s) => s.trim()).filter(Boolean);
+            const hasAny = pros.length > 0 || cons.length > 0;
+            return (
+              <div className="rounded-[12px] border border-hairline bg-card p-5 shadow-sm flex flex-col h-full">
+                <h2 className="text-[18px] font-semibold text-ink mb-4">Summary</h2>
+                {hasAny ? (
+                  <div className="space-y-4 text-[14px] leading-relaxed text-ink/90">
+                    {pros.length > 0 && (
+                      <div>
+                        <div className="font-bold text-ink mb-2">Pros</div>
+                        <ul className="space-y-1.5">
+                          {pros.map((p, i) => (
+                            <li key={i} className="flex gap-2">
+                              <span className="text-green-600 shrink-0">✅</span>
+                              <span>{p}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {cons.length > 0 && (
+                      <div>
+                        <div className="font-bold text-ink mb-2">Cons</div>
+                        <ul className="space-y-1.5">
+                          {cons.map((c, i) => (
+                            <li key={i} className="flex gap-2">
+                              <span className="text-red-600 shrink-0">❌</span>
+                              <span>{c}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    <p className="italic text-[12px] text-ink-muted pt-2">
+                      *Based on publicly available resident reviews from the past 12 months.
+                    </p>
+                  </div>
+                ) : (
+                  <p className="text-[14px] text-ink-muted">No summary yet.</p>
+                )}
+              </div>
+            );
+          })()}
         </div>
 
         {/* Reviews */}
@@ -349,25 +388,32 @@ const BuildingDetail = () => {
             </p>
           ) : showForm ? (
             <form onSubmit={submitReview} className="space-y-4 rounded-[12px] border border-hairline p-5">
-              <div>
-                <Label className="mb-1.5 block text-[13px] text-ink">Overall rating</Label>
-                <StarsInput value={form.overall} onChange={(v) => setForm({ ...form, overall: v })} size={24} />
+              <div
+                className="rounded-[12px] border border-brand/30 p-4"
+                style={{ background: "#fff7ed" }}
+              >
+                <Label className="mb-2 block text-[16px] font-bold text-ink">Overall rating</Label>
+                <StarsInput value={form.overall} onChange={(v) => setForm({ ...form, overall: v })} size={28} />
               </div>
-              <div className="grid gap-3 sm:grid-cols-2">
-                {REVIEW_CATEGORIES.map((c, i) => {
-                  // building_condition full width as last item
-                  const isFull = c.key === "building_condition";
-                  return (
-                    <div key={c.key} className={isFull ? "sm:col-span-2" : ""}>
-                      <Label className="mb-1 block text-[13px] text-ink">{c.label}</Label>
-                      <StarsInput
-                        value={form[c.key as ReviewCategoryKey]}
-                        onChange={(v) => setForm({ ...form, [c.key]: v })}
-                        size={20}
-                      />
-                    </div>
-                  );
-                })}
+              <div className="grid gap-3 grid-cols-2">
+                {REVIEW_CATEGORIES.filter((c) => c.key !== "building_condition" && c.key).slice(0, 4).map((c) => (
+                  <div key={c.key}>
+                    <Label className="mb-1 block text-[14px] text-ink">{c.label}</Label>
+                    <StarsInput
+                      value={form[c.key as ReviewCategoryKey]}
+                      onChange={(v) => setForm({ ...form, [c.key]: v })}
+                      size={20}
+                    />
+                  </div>
+                ))}
+                <div className="col-span-2">
+                  <Label className="mb-1 block text-[14px] text-ink">Building Condition</Label>
+                  <StarsInput
+                    value={form.building_condition}
+                    onChange={(v) => setForm({ ...form, building_condition: v })}
+                    size={20}
+                  />
+                </div>
               </div>
               <div>
                 <Label htmlFor="comment" className="text-[13px] text-ink">Comment (min 20 characters)</Label>
