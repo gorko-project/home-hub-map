@@ -13,7 +13,73 @@ import { StarsDisplay } from "@/components/Stars";
 import { supabase } from "@/integrations/supabase/client";
 
 const GOOGLE_MAPS_API_KEY = "AIzaSyA7otCuVOVby8vCvbGr7F1qKFahE4AeCa4";
-const MAP_ID = "apartmentmap_main";
+
+const HTMLMarker = ({
+  position,
+  onClick,
+  zIndex,
+  children,
+}: {
+  position: { lat: number; lng: number };
+  onClick?: () => void;
+  zIndex?: number;
+  children: ReactNode;
+}) => {
+  const map = useMap();
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  if (!containerRef.current && typeof document !== "undefined") {
+    const el = document.createElement("div");
+    el.style.position = "absolute";
+    el.style.transform = "translate(-50%, -100%)";
+    el.style.cursor = "pointer";
+    containerRef.current = el;
+  }
+
+  useEffect(() => {
+    if (!map || !containerRef.current) return;
+    const div = containerRef.current;
+    if (zIndex != null) div.style.zIndex = String(zIndex);
+
+    class Overlay extends google.maps.OverlayView {
+      onAdd() {
+        this.getPanes()!.floatPane.appendChild(div);
+      }
+      draw() {
+        const proj = this.getProjection();
+        if (!proj) return;
+        const p = proj.fromLatLngToDivPixel(
+          new google.maps.LatLng(position.lat, position.lng),
+        );
+        if (p) {
+          div.style.left = `${p.x}px`;
+          div.style.top = `${p.y}px`;
+        }
+      }
+      onRemove() {
+        if (div.parentNode) div.parentNode.removeChild(div);
+      }
+    }
+    const overlay = new Overlay();
+    overlay.setMap(map);
+    return () => {
+      overlay.setMap(null);
+    };
+  }, [map, position.lat, position.lng, zIndex]);
+
+  useEffect(() => {
+    const div = containerRef.current;
+    if (!div || !onClick) return;
+    const handler = (e: Event) => {
+      e.stopPropagation();
+      onClick();
+    };
+    div.addEventListener("click", handler);
+    return () => div.removeEventListener("click", handler);
+  }, [onClick]);
+
+  if (!containerRef.current) return null;
+  return createPortal(children, containerRef.current);
+};
 
 type Building = {
   id: string;
