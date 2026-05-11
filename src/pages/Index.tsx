@@ -110,24 +110,25 @@ const Index = () => {
                 position={{ lat: Number(b.latitude), lng: Number(b.longitude) }}
                 onClick={() => setSelected(b)}
               >
-                <div className="flex flex-col items-center cursor-pointer transition-transform duration-150 hover:scale-105" style={{ maxHeight: 60 }}>
-                  <div
-                    className="px-1.5 py-0.5 rounded-full bg-white text-[11px] font-semibold tabular-nums text-ink leading-none mb-0.5"
-                    style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.18)" }}
-                  >
+                <div
+                  className="flex flex-col items-center gap-0.5 cursor-pointer transition-transform duration-150 hover:scale-105 bg-white rounded-full px-2 py-1"
+                  style={{
+                    border: "1px solid #f97316",
+                    boxShadow: "0 2px 6px rgba(0,0,0,0.18)",
+                    maxHeight: 60,
+                  }}
+                >
+                  <div className="text-[11px] font-semibold tabular-nums text-ink leading-none">
                     {b.composite_score != null ? `${Number(b.composite_score).toFixed(1)} ★` : "—"}
                   </div>
                   <div
-                    className="h-5 w-5 rounded-full flex items-center justify-center"
-                    style={{ background: "hsl(var(--brand))", boxShadow: "0 1px 3px rgba(0,0,0,0.25)" }}
+                    className="h-4 w-4 rounded-full flex items-center justify-center"
+                    style={{ background: "#f97316" }}
                   >
-                    <img src={homeMarker} alt="" className="h-3 w-3 block" />
+                    <img src={homeMarker} alt="" className="h-2.5 w-2.5 block" />
                   </div>
                   {zoom >= 14 && (
-                    <span
-                      className="mt-0.5 text-[11px] font-medium whitespace-nowrap max-w-[140px] truncate text-ink"
-                      style={{ textShadow: "0 1px 2px rgba(255,255,255,0.95), 0 0 2px rgba(255,255,255,0.95)" }}
-                    >
+                    <span className="text-[10px] font-medium whitespace-nowrap max-w-[120px] truncate text-ink leading-none">
                       {b.name}
                     </span>
                   )}
