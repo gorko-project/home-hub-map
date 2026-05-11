@@ -30,6 +30,8 @@ type Building = {
   photo_url: string | null;
   composite_score: number | null;
   admin_notes: string | null;
+  summary_pros: string | null;
+  summary_cons: string | null;
 };
 
 type Scores = {
