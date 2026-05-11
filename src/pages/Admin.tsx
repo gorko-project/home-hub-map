@@ -402,7 +402,11 @@ const Admin = () => {
 
               <div className="md:col-span-2">
                 <Label htmlFor="notes">Admin notes</Label>
-                <Textarea id="notes" rows={3} value={form.admin_notes} onChange={(e) => setForm({ ...form, admin_notes: e.target.value })} />
+                <RichTextEditor
+                  value={form.admin_notes}
+                  onChange={(html) => setForm({ ...form, admin_notes: html })}
+                  placeholder="Add notes about this building…"
+                />
               </div>
 
               <div>
