@@ -168,13 +168,8 @@ const Index = () => {
             disableDefaultUI={false}
             style={{ width: "100%", height: "100%" }}
             styles={[
-              { featureType: "poi", stylers: [{ visibility: "off" }] },
-              { featureType: "poi.business", stylers: [{ visibility: "off" }] },
-              { featureType: "poi.attraction", stylers: [{ visibility: "off" }] },
-              { featureType: "poi.food_and_drink", stylers: [{ visibility: "off" }] },
-              { featureType: "poi.medical", stylers: [{ visibility: "off" }] },
-              { featureType: "poi.school", stylers: [{ visibility: "off" }] },
-              { featureType: "poi.sports_complex", stylers: [{ visibility: "off" }] },
+              { featureType: "poi", elementType: "labels", stylers: [{ visibility: "off" }] },
+              { featureType: "poi.business", elementType: "all", stylers: [{ visibility: "off" }] },
               { featureType: "transit", elementType: "labels.icon", stylers: [{ visibility: "off" }] },
             ]}
           >
