@@ -48,6 +48,8 @@ type BuildingRow = {
   longitude: number | null;
   status: string;
   admin_notes: string | null;
+  summary_pros: string | null;
+  summary_cons: string | null;
   photo_url: string | null;
   composite_score: number | null;
 };
@@ -69,6 +71,8 @@ const blankForm = {
   latitude: "",
   longitude: "",
   admin_notes: "",
+  summary_pros: "",
+  summary_cons: "",
   photo_url: "",
   status: "draft" as "draft" | "published",
 };
