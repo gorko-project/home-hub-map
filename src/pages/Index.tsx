@@ -1,7 +1,8 @@
 /// <reference types="google.maps" />
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
-import { APIProvider, Map, AdvancedMarker, Pin, InfoWindow, useMap, useMapsLibrary } from "@vis.gl/react-google-maps";
+import { APIProvider, Map, InfoWindow, useMap, useMapsLibrary } from "@vis.gl/react-google-maps";
 import { Search, X } from "lucide-react";
 import homeMarker from "@/assets/home-marker.svg";
 import { Navbar } from "@/components/Navbar";
@@ -12,7 +13,73 @@ import { StarsDisplay } from "@/components/Stars";
 import { supabase } from "@/integrations/supabase/client";
 
 const GOOGLE_MAPS_API_KEY = "AIzaSyA7otCuVOVby8vCvbGr7F1qKFahE4AeCa4";
-const MAP_ID = "apartmentmap_main";
+
+const HTMLMarker = ({
+  position,
+  onClick,
+  zIndex,
+  children,
+}: {
+  position: { lat: number; lng: number };
+  onClick?: () => void;
+  zIndex?: number;
+  children: ReactNode;
+}) => {
+  const map = useMap();
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  if (!containerRef.current && typeof document !== "undefined") {
+    const el = document.createElement("div");
+    el.style.position = "absolute";
+    el.style.transform = "translate(-50%, -100%)";
+    el.style.cursor = "pointer";
+    containerRef.current = el;
+  }
+
+  useEffect(() => {
+    if (!map || !containerRef.current) return;
+    const div = containerRef.current;
+    if (zIndex != null) div.style.zIndex = String(zIndex);
+
+    class Overlay extends google.maps.OverlayView {
+      onAdd() {
+        this.getPanes()!.floatPane.appendChild(div);
+      }
+      draw() {
+        const proj = this.getProjection();
+        if (!proj) return;
+        const p = proj.fromLatLngToDivPixel(
+          new google.maps.LatLng(position.lat, position.lng),
+        );
+        if (p) {
+          div.style.left = `${p.x}px`;
+          div.style.top = `${p.y}px`;
+        }
+      }
+      onRemove() {
+        if (div.parentNode) div.parentNode.removeChild(div);
+      }
+    }
+    const overlay = new Overlay();
+    overlay.setMap(map);
+    return () => {
+      overlay.setMap(null);
+    };
+  }, [map, position.lat, position.lng, zIndex]);
+
+  useEffect(() => {
+    const div = containerRef.current;
+    if (!div || !onClick) return;
+    const handler = (e: Event) => {
+      e.stopPropagation();
+      onClick();
+    };
+    div.addEventListener("click", handler);
+    return () => div.removeEventListener("click", handler);
+  }, [onClick]);
+
+  if (!containerRef.current) return null;
+  return createPortal(children, containerRef.current);
+};
 
 type Building = {
   id: string;
@@ -95,12 +162,21 @@ const Index = () => {
           />
 
           <Map
-            mapId={MAP_ID}
             defaultCenter={center}
             defaultZoom={12}
             gestureHandling="greedy"
             disableDefaultUI={false}
             style={{ width: "100%", height: "100%" }}
+            styles={[
+              { featureType: "poi", stylers: [{ visibility: "off" }] },
+              { featureType: "poi.business", stylers: [{ visibility: "off" }] },
+              { featureType: "poi.attraction", stylers: [{ visibility: "off" }] },
+              { featureType: "poi.food_and_drink", stylers: [{ visibility: "off" }] },
+              { featureType: "poi.medical", stylers: [{ visibility: "off" }] },
+              { featureType: "poi.school", stylers: [{ visibility: "off" }] },
+              { featureType: "poi.sports_complex", stylers: [{ visibility: "off" }] },
+              { featureType: "transit", elementType: "labels.icon", stylers: [{ visibility: "off" }] },
+            ]}
           >
             <MapInstanceBridge onReady={setMapInstance} />
             <SearchPinMarker position={searchPin} />
@@ -108,16 +184,18 @@ const Index = () => {
               const z = zoom;
               let iconSize = 10, scoreSize = 11, padding = "3px 7px", radius = 6;
               if (z >= 15 && z <= 16) { iconSize = 12; scoreSize = 13; padding = "4px 9px"; radius = 7; }
-              else if (z >= 17) { iconSize = 14; scoreSize = 15; padding = "5px 11px"; radius = 8; }
+              else if (z >= 17 && z <= 18) { iconSize = 14; scoreSize = 15; padding = "5px 11px"; radius = 8; }
+              else if (z > 18) { iconSize = 16; scoreSize = 17; padding = "6px 13px"; radius = 9; }
 
               let nameSize = 0;
-              if (z === 16) nameSize = 11;
-              else if (z === 17) nameSize = 13;
-              else if (z >= 18) nameSize = 15;
+              if (z === 15) nameSize = 13;
+              else if (z === 16) nameSize = 15;
+              else if (z === 17) nameSize = 17;
+              else if (z >= 18) nameSize = 19;
               const showName = nameSize > 0;
 
               return (
-                <AdvancedMarker
+                <HTMLMarker
                   key={b.id}
                   position={{ lat: Number(b.latitude), lng: Number(b.longitude) }}
                   onClick={() => setSelected(b)}
@@ -126,14 +204,14 @@ const Index = () => {
                   <div className="cursor-pointer flex flex-col items-center">
                     {showName && (
                       <span
-                        className="whitespace-nowrap max-w-[200px] truncate"
+                        className="whitespace-nowrap max-w-[260px] truncate text-center"
                         style={{
                           fontSize: nameSize,
-                          fontWeight: 600,
+                          fontWeight: 700,
                           color: "#1a1a1a",
                           textShadow: "0 1px 3px rgba(255,255,255,1)",
-                          marginBottom: 3,
-                          transition: "all 0.2s ease",
+                          marginBottom: 4,
+                          transition: "all 0.15s ease",
                         }}
                       >
                         {b.name}
@@ -146,7 +224,7 @@ const Index = () => {
                         borderRadius: radius,
                         padding,
                         boxShadow: "0 2px 4px rgba(0,0,0,0.15)",
-                        transition: "all 0.2s ease",
+                        transition: "all 0.15s ease",
                       }}
                     >
                       <svg width={iconSize} height={iconSize} viewBox="0 0 14 14" fill="none">
@@ -159,7 +237,7 @@ const Index = () => {
                           color: "#f97316",
                           lineHeight: 1,
                           fontVariantNumeric: "tabular-nums",
-                          transition: "all 0.2s ease",
+                          transition: "all 0.15s ease",
                         }}
                       >
                         {b.composite_score != null ? Number(b.composite_score).toFixed(1) : "—"}
@@ -177,7 +255,7 @@ const Index = () => {
                       }}
                     />
                   </div>
-                </AdvancedMarker>
+                </HTMLMarker>
               );
             })}
 
