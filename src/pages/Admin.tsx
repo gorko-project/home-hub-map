@@ -201,15 +201,16 @@ const Admin = () => {
     if (data) {
       setEditingScoreId(data.id);
       setScores({
-        management: Number(data.management ?? 2.5),
-        noise: Number(data.noise ?? 2.5),
-        value: Number(data.value ?? 2.5),
-        location: Number(data.location ?? 2.5),
-        condition: Number(data.condition ?? 2.5),
+        management: data.management != null ? String(data.management) : "",
+        noise: data.noise != null ? String(data.noise) : "",
+        value: data.value != null ? String(data.value) : "",
+        location: data.location != null ? String(data.location) : "",
+        condition: data.condition != null ? String(data.condition) : "",
+        composite: b.composite_score != null ? String(b.composite_score) : "",
       });
     } else {
       setEditingScoreId(null);
-      setScores(blankScores);
+      setScores({ ...blankScores, composite: b.composite_score != null ? String(b.composite_score) : "2.5" });
     }
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
