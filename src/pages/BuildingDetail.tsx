@@ -314,7 +314,10 @@ const BuildingDetail = () => {
           <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
             <h2 className="text-lg font-semibold mb-4">Summary</h2>
             {building.admin_notes ? (
-              <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground/90">{building.admin_notes}</p>
+              <div
+                className="text-sm leading-relaxed text-foreground/90 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:my-2 [&_strong]:font-semibold [&_em]:italic"
+                dangerouslySetInnerHTML={{ __html: building.admin_notes }}
+              />
             ) : (
               <p className="text-sm text-muted-foreground">No notes yet.</p>
             )}
