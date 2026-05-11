@@ -111,56 +111,60 @@ const Index = () => {
                 onClick={() => setSelected(b)}
                 zIndex={1000}
               >
-                <div className="flex flex-col items-center cursor-pointer">
-                  {zoom >= 14 && (
-                    <div
-                      className="bg-white whitespace-nowrap max-w-[140px] truncate"
-                      style={{
-                        borderRadius: 4,
-                        padding: "2px 7px",
-                        fontSize: 11,
-                        fontWeight: 500,
-                        color: "#1a1a1a",
-                        boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
-                        marginBottom: 5,
-                      }}
-                    >
-                      {b.name}
+                <div className="cursor-pointer flex flex-col items-center">
+                  <div className="flex items-center" style={{ gap: 6 }}>
+                    <div className="flex flex-col items-center">
+                      <div
+                        className="bg-white flex items-center gap-1 transition-transform duration-150 hover:scale-105"
+                        style={{
+                          border: "1.5px solid #f97316",
+                          borderRadius: 6,
+                          padding: "2px 6px",
+                          boxShadow: "0 2px 4px rgba(0,0,0,0.15)",
+                        }}
+                      >
+                        <svg width="10" height="10" viewBox="0 0 14 14" fill="none">
+                          <path d="M7 1L1 6v7h4V9h4v4h4V6L7 1z" fill="#f97316" />
+                        </svg>
+                        <span
+                          style={{
+                            fontSize: 11,
+                            fontWeight: 500,
+                            color: "#f97316",
+                            lineHeight: 1,
+                            fontVariantNumeric: "tabular-nums",
+                          }}
+                        >
+                          {b.composite_score != null ? Number(b.composite_score).toFixed(1) : "—"}
+                        </span>
+                      </div>
+                      <div
+                        style={{
+                          width: 0,
+                          height: 0,
+                          borderLeft: "4px solid transparent",
+                          borderRight: "4px solid transparent",
+                          borderTop: "5px solid #f97316",
+                          marginTop: -1,
+                          filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.15))",
+                        }}
+                      />
                     </div>
-                  )}
-                  <div
-                    className="bg-white flex items-center gap-1 transition-transform duration-150 hover:scale-105"
-                    style={{
-                      border: "1.5px solid #f97316",
-                      borderRadius: 6,
-                      padding: "2px 6px",
-                      boxShadow: "0 2px 4px rgba(0,0,0,0.15)",
-                    }}
-                  >
-                    <img src={homeMarker} alt="" style={{ width: 11, height: 11, display: "block" }} />
-                    <span
-                      style={{
-                        fontSize: 11,
-                        fontWeight: 500,
-                        color: "#f97316",
-                        lineHeight: 1,
-                        fontVariantNumeric: "tabular-nums",
-                      }}
-                    >
-                      {b.composite_score != null ? Number(b.composite_score).toFixed(1) : "—"}
-                    </span>
+                    {zoom >= 14 && (
+                      <span
+                        className="whitespace-nowrap max-w-[160px] truncate"
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 500,
+                          color: "#1a1a1a",
+                          textShadow: "0 1px 2px rgba(255,255,255,0.9)",
+                          marginBottom: 6,
+                        }}
+                      >
+                        {b.name}
+                      </span>
+                    )}
                   </div>
-                  <div
-                    style={{
-                      width: 0,
-                      height: 0,
-                      borderLeft: "4px solid transparent",
-                      borderRight: "4px solid transparent",
-                      borderTop: "5px solid #f97316",
-                      marginTop: -1,
-                      filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.15))",
-                    }}
-                  />
                 </div>
               </AdvancedMarker>
             ))}
