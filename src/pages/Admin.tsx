@@ -98,7 +98,7 @@ const Admin = () => {
 
   const [buildings, setBuildings] = useState<BuildingRow[]>([]);
 
-  const composite = useMemo(() => computeComposite(scores), [scores]);
+  
 
   // Auth + role check
   useEffect(() => {
