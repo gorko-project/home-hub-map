@@ -139,7 +139,7 @@ const BuildingDetail = () => {
       setLoading(true);
       const { data: b } = await supabase
         .from("buildings")
-        .select("id,name,slug,address,neighborhood,photo_url,composite_score,admin_notes")
+        .select("id,name,slug,address,neighborhood,photo_url,composite_score,admin_notes,summary_pros,summary_cons")
         .eq("slug", slug)
         .maybeSingle();
       setBuilding(b);
