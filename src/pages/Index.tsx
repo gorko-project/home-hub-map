@@ -184,16 +184,18 @@ const Index = () => {
               const z = zoom;
               let iconSize = 10, scoreSize = 11, padding = "3px 7px", radius = 6;
               if (z >= 15 && z <= 16) { iconSize = 12; scoreSize = 13; padding = "4px 9px"; radius = 7; }
-              else if (z >= 17) { iconSize = 14; scoreSize = 15; padding = "5px 11px"; radius = 8; }
+              else if (z >= 17 && z <= 18) { iconSize = 14; scoreSize = 15; padding = "5px 11px"; radius = 8; }
+              else if (z > 18) { iconSize = 16; scoreSize = 17; padding = "6px 13px"; radius = 9; }
 
               let nameSize = 0;
-              if (z === 16) nameSize = 11;
-              else if (z === 17) nameSize = 13;
-              else if (z >= 18) nameSize = 15;
+              if (z === 15) nameSize = 13;
+              else if (z === 16) nameSize = 15;
+              else if (z === 17) nameSize = 17;
+              else if (z >= 18) nameSize = 19;
               const showName = nameSize > 0;
 
               return (
-                <AdvancedMarker
+                <HTMLMarker
                   key={b.id}
                   position={{ lat: Number(b.latitude), lng: Number(b.longitude) }}
                   onClick={() => setSelected(b)}
@@ -202,14 +204,14 @@ const Index = () => {
                   <div className="cursor-pointer flex flex-col items-center">
                     {showName && (
                       <span
-                        className="whitespace-nowrap max-w-[200px] truncate"
+                        className="whitespace-nowrap max-w-[260px] truncate text-center"
                         style={{
                           fontSize: nameSize,
-                          fontWeight: 600,
+                          fontWeight: 700,
                           color: "#1a1a1a",
                           textShadow: "0 1px 3px rgba(255,255,255,1)",
-                          marginBottom: 3,
-                          transition: "all 0.2s ease",
+                          marginBottom: 4,
+                          transition: "all 0.15s ease",
                         }}
                       >
                         {b.name}
@@ -222,7 +224,7 @@ const Index = () => {
                         borderRadius: radius,
                         padding,
                         boxShadow: "0 2px 4px rgba(0,0,0,0.15)",
-                        transition: "all 0.2s ease",
+                        transition: "all 0.15s ease",
                       }}
                     >
                       <svg width={iconSize} height={iconSize} viewBox="0 0 14 14" fill="none">
@@ -235,7 +237,7 @@ const Index = () => {
                           color: "#f97316",
                           lineHeight: 1,
                           fontVariantNumeric: "tabular-nums",
-                          transition: "all 0.2s ease",
+                          transition: "all 0.15s ease",
                         }}
                       >
                         {b.composite_score != null ? Number(b.composite_score).toFixed(1) : "—"}
@@ -253,7 +255,7 @@ const Index = () => {
                       }}
                     />
                   </div>
-                </AdvancedMarker>
+                </HTMLMarker>
               );
             })}
 
