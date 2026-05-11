@@ -104,70 +104,82 @@ const Index = () => {
           >
             <MapInstanceBridge onReady={setMapInstance} />
             <SearchPinMarker position={searchPin} />
-            {buildings.map((b) => (
-              <AdvancedMarker
-                key={b.id}
-                position={{ lat: Number(b.latitude), lng: Number(b.longitude) }}
-                onClick={() => setSelected(b)}
-                zIndex={1000}
-              >
-                <div className="cursor-pointer flex flex-col items-center">
-                  <div className="flex items-center" style={{ gap: 6 }}>
-                    <div className="flex flex-col items-center">
-                      <div
-                        className="bg-white flex items-center gap-1 transition-transform duration-150 hover:scale-105"
-                        style={{
-                          border: "1.5px solid #f97316",
-                          borderRadius: 6,
-                          padding: "2px 6px",
-                          boxShadow: "0 2px 4px rgba(0,0,0,0.15)",
-                        }}
-                      >
-                        <svg width="10" height="10" viewBox="0 0 14 14" fill="none">
-                          <path d="M7 1L1 6v7h4V9h4v4h4V6L7 1z" fill="#f97316" />
-                        </svg>
-                        <span
-                          style={{
-                            fontSize: 11,
-                            fontWeight: 500,
-                            color: "#f97316",
-                            lineHeight: 1,
-                            fontVariantNumeric: "tabular-nums",
-                          }}
-                        >
-                          {b.composite_score != null ? Number(b.composite_score).toFixed(1) : "—"}
-                        </span>
-                      </div>
-                      <div
-                        style={{
-                          width: 0,
-                          height: 0,
-                          borderLeft: "4px solid transparent",
-                          borderRight: "4px solid transparent",
-                          borderTop: "5px solid #f97316",
-                          marginTop: -1,
-                          filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.15))",
-                        }}
-                      />
-                    </div>
-                    {zoom >= 14 && (
+            {buildings.map((b) => {
+              const z = zoom;
+              let iconSize = 10, scoreSize = 11, padding = "3px 7px", radius = 6;
+              if (z >= 15 && z <= 16) { iconSize = 12; scoreSize = 13; padding = "4px 9px"; radius = 7; }
+              else if (z >= 17) { iconSize = 14; scoreSize = 15; padding = "5px 11px"; radius = 8; }
+
+              let nameSize = 0;
+              if (z === 16) nameSize = 11;
+              else if (z === 17) nameSize = 13;
+              else if (z >= 18) nameSize = 15;
+              const showName = nameSize > 0;
+
+              return (
+                <AdvancedMarker
+                  key={b.id}
+                  position={{ lat: Number(b.latitude), lng: Number(b.longitude) }}
+                  onClick={() => setSelected(b)}
+                  zIndex={1000}
+                >
+                  <div className="cursor-pointer flex flex-col items-center">
+                    {showName && (
                       <span
-                        className="whitespace-nowrap max-w-[160px] truncate"
+                        className="whitespace-nowrap max-w-[200px] truncate"
                         style={{
-                          fontSize: 11,
-                          fontWeight: 500,
+                          fontSize: nameSize,
+                          fontWeight: 600,
                           color: "#1a1a1a",
-                          textShadow: "0 1px 2px rgba(255,255,255,0.9)",
-                          marginBottom: 6,
+                          textShadow: "0 1px 3px rgba(255,255,255,1)",
+                          marginBottom: 3,
+                          transition: "all 0.2s ease",
                         }}
                       >
                         {b.name}
                       </span>
                     )}
+                    <div
+                      className="bg-white flex items-center gap-1 hover:scale-105"
+                      style={{
+                        border: "1.5px solid #f97316",
+                        borderRadius: radius,
+                        padding,
+                        boxShadow: "0 2px 4px rgba(0,0,0,0.15)",
+                        transition: "all 0.2s ease",
+                      }}
+                    >
+                      <svg width={iconSize} height={iconSize} viewBox="0 0 14 14" fill="none">
+                        <path d="M7 1L1 6v7h4V9h4v4h4V6L7 1z" fill="#f97316" />
+                      </svg>
+                      <span
+                        style={{
+                          fontSize: scoreSize,
+                          fontWeight: 500,
+                          color: "#f97316",
+                          lineHeight: 1,
+                          fontVariantNumeric: "tabular-nums",
+                          transition: "all 0.2s ease",
+                        }}
+                      >
+                        {b.composite_score != null ? Number(b.composite_score).toFixed(1) : "—"}
+                      </span>
+                    </div>
+                    <div
+                      style={{
+                        width: 0,
+                        height: 0,
+                        borderLeft: "4px solid transparent",
+                        borderRight: "4px solid transparent",
+                        borderTop: "5px solid #f97316",
+                        marginTop: -1,
+                        filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.15))",
+                      }}
+                    />
                   </div>
-                </div>
-              </AdvancedMarker>
-            ))}
+                </AdvancedMarker>
+              );
+            })}
 
             {selected && (
               <InfoWindow
