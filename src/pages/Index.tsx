@@ -5,7 +5,7 @@ import { APIProvider, Map, AdvancedMarker, Pin, InfoWindow, useMap, useMapsLibra
 import { Search, X } from "lucide-react";
 import homeMarker from "@/assets/home-marker.svg";
 import { Navbar } from "@/components/Navbar";
-import { Button } from "@/components/ui/button";
+
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/Spinner";
 import { StarsDisplay } from "@/components/Stars";
@@ -110,31 +110,27 @@ const Index = () => {
                 position={{ lat: Number(b.latitude), lng: Number(b.longitude) }}
                 onClick={() => setSelected(b)}
               >
-                <div className="relative cursor-pointer transition-transform duration-150 hover:scale-110" style={{ width: 24, height: 24 }}>
+                <div className="flex flex-col items-center cursor-pointer transition-transform duration-150 hover:scale-105" style={{ maxHeight: 60 }}>
                   <div
-                    className="h-6 w-6 rounded-full flex items-center justify-center"
-                    style={{ background: "#FF6B35", boxShadow: "0 1px 3px rgba(0,0,0,0.3)" }}
+                    className="px-1.5 py-0.5 rounded-full bg-white text-[11px] font-semibold tabular-nums text-ink leading-none mb-0.5"
+                    style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.18)" }}
                   >
-                    <img src={homeMarker} alt="" className="h-4 w-4 block" />
+                    {b.composite_score != null ? `${Number(b.composite_score).toFixed(1)} ★` : "—"}
                   </div>
-                  <div className="absolute left-7 top-1/2 -translate-y-1/2 flex flex-col leading-tight">
-                    {zoom > 12 && (
-                      <span
-                        className="text-[12px] font-bold whitespace-nowrap max-w-[160px] truncate"
-                        style={{ color: "#000", textShadow: "0 1px 2px rgba(255,255,255,0.95), 0 0 2px rgba(255,255,255,0.95)" }}
-                      >
-                        {b.name}
-                      </span>
-                    )}
-                    {zoom > 16 && (
-                      <span
-                        className="text-[11px] font-normal whitespace-nowrap"
-                        style={{ color: "#000", textShadow: "0 1px 2px rgba(255,255,255,0.95), 0 0 2px rgba(255,255,255,0.95)" }}
-                      >
-                        {b.composite_score != null ? `${Number(b.composite_score).toFixed(1)} ★` : "—"}
-                      </span>
-                    )}
+                  <div
+                    className="h-5 w-5 rounded-full flex items-center justify-center"
+                    style={{ background: "hsl(var(--brand))", boxShadow: "0 1px 3px rgba(0,0,0,0.25)" }}
+                  >
+                    <img src={homeMarker} alt="" className="h-3 w-3 block" />
                   </div>
+                  {zoom >= 14 && (
+                    <span
+                      className="mt-0.5 text-[11px] font-medium whitespace-nowrap max-w-[140px] truncate text-ink"
+                      style={{ textShadow: "0 1px 2px rgba(255,255,255,0.95), 0 0 2px rgba(255,255,255,0.95)" }}
+                    >
+                      {b.name}
+                    </span>
+                  )}
                 </div>
               </AdvancedMarker>
             ))}
@@ -144,29 +140,47 @@ const Index = () => {
                 position={{ lat: Number(selected.latitude), lng: Number(selected.longitude) }}
                 onCloseClick={() => setSelected(null)}
                 pixelOffset={[0, -40]}
+                headerDisabled
               >
-                <div className="min-w-[220px] max-w-[260px] space-y-2 p-1">
-                  {selected.photo_url ? (
-                    <img src={selected.photo_url} alt={selected.name} className="w-full h-32 object-cover rounded" />
-                  ) : (
-                    <div className="w-full h-32 rounded bg-muted" />
-                  )}
-                  <h3 className="font-semibold text-base">{selected.name}</h3>
-                  {selected.address && <p className="text-sm text-muted-foreground">{selected.address}</p>}
-                  <p className="text-sm flex items-center gap-1">
-                    <span>Score:</span>
-                    {selected.composite_score != null ? (
-                      <>
-                        <StarsDisplay value={Number(selected.composite_score)} size={14} />
-                        <span className="font-medium tabular-nums">{Number(selected.composite_score).toFixed(1)}</span>
-                      </>
+                <div className="w-[260px] overflow-hidden rounded-xl bg-white" style={{ boxShadow: "0 4px 16px rgba(0,0,0,0.12)" }}>
+                  <div className="relative">
+                    {selected.photo_url ? (
+                      <img src={selected.photo_url} alt={selected.name} className="w-full h-[140px] object-cover" />
                     ) : (
-                      <span className="font-medium">N/A</span>
+                      <div className="w-full h-[140px] bg-muted" />
                     )}
-                  </p>
-                  <Button asChild size="sm" className="w-full">
-                    <Link to={`/buildings/${selected.slug}`}>View details</Link>
-                  </Button>
+                    <button
+                      type="button"
+                      aria-label="Close"
+                      onClick={() => setSelected(null)}
+                      className="absolute top-2 right-2 h-6 w-6 rounded-full bg-white/90 hover:bg-white text-ink flex items-center justify-center shadow"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                  <div className="p-3 space-y-1.5">
+                    <h3 className="font-bold text-[16px] text-ink leading-tight">{selected.name}</h3>
+                    {selected.address && (
+                      <p className="text-[12px] text-ink-muted leading-snug">{selected.address}</p>
+                    )}
+                    <div className="flex items-center gap-1.5 text-[13px] text-ink">
+                      {selected.composite_score != null ? (
+                        <>
+                          <StarsDisplay value={Number(selected.composite_score)} size={14} />
+                          <span className="font-semibold tabular-nums">{Number(selected.composite_score).toFixed(1)}</span>
+                          <span className="text-ink-muted">/ 5</span>
+                        </>
+                      ) : (
+                        <span className="text-ink-muted">No rating yet</span>
+                      )}
+                    </div>
+                    <Link
+                      to={`/buildings/${selected.slug}`}
+                      className="mt-2 block w-full text-center rounded-lg bg-ink text-white text-[13px] font-medium py-2 hover:bg-ink/90 transition-colors"
+                    >
+                      View details
+                    </Link>
+                  </div>
                 </div>
               </InfoWindow>
             )}

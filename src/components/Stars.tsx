@@ -37,7 +37,7 @@ export const StarsDisplay = ({
                 style={{ width: `${fill * 100}%` }}
               >
                 <Star
-                  className="fill-yellow-400 text-yellow-400"
+                  className="fill-brand text-brand"
                   style={{ width: size, height: size }}
                 />
               </div>
@@ -82,7 +82,7 @@ export const StarsInput = ({
             <Star
               style={{ width: size, height: size }}
               className={
-                active ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground/50"
+                active ? "fill-brand text-brand" : "text-muted-foreground/50"
               }
             />
           </button>
