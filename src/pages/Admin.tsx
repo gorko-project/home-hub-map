@@ -82,6 +82,16 @@ const blankScores: ScoresState = {
   composite: "2.5",
 };
 
+const normalizeScoreInput = (value: string) => value.replace(/,/g, ".");
+
+const parseScore = (value: string) => {
+  const normalized = normalizeScoreInput(value).trim();
+  if (!normalized) return null;
+  const parsed = Number.parseFloat(normalized);
+  if (!Number.isFinite(parsed) || parsed < 1 || parsed > 5) return null;
+  return Math.round(parsed * 10) / 10;
+};
+
 const Admin = () => {
   const navigate = useNavigate();
   const [authChecked, setAuthChecked] = useState(false);
@@ -235,10 +245,6 @@ const Admin = () => {
     }
     setSaving(true);
     try {
-      const parseScore = (s: string) => {
-        const n = parseFloat(s);
-        return Number.isFinite(n) ? n : null;
-      };
       const compositeNum = parseScore(scores.composite);
       const payload = {
         name: form.name,
@@ -326,15 +332,22 @@ const Admin = () => {
         <Label>{label}</Label>
         <div className="flex items-center gap-3">
           <Input
-            type="number"
+            type="text"
             inputMode="decimal"
-            min={1}
-            max={5}
-            step={0.1}
+            placeholder="e.g. 4.4"
+            autoComplete="off"
+            enterKeyHint="done"
             value={val}
-            onChange={(e) =>
-              setScores((s) => ({ ...s, [field]: e.target.value }))
-            }
+            onChange={(e) => {
+              const nextValue = normalizeScoreInput(e.target.value);
+              if (/^$|^\d{0,2}(?:\.\d{0,2})?$/.test(nextValue)) {
+                setScores((s) => ({ ...s, [field]: nextValue }));
+              }
+            }}
+            onBlur={(e) => {
+              const parsed = parseScore(e.target.value);
+              setScores((s) => ({ ...s, [field]: parsed == null ? normalizeScoreInput(e.target.value).trim() : parsed.toFixed(1) }));
+            }}
             className="w-24 no-spinner"
           />
           <StarsDisplay value={display} size={18} />
