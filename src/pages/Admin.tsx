@@ -74,12 +74,12 @@ const blankForm = {
 };
 
 const blankScores: ScoresState = {
-  management: "2.5",
-  noise: "2.5",
-  value: "2.5",
-  location: "2.5",
-  condition: "2.5",
-  composite: "2.5",
+  management: "",
+  noise: "",
+  value: "",
+  location: "",
+  condition: "",
+  composite: "",
 };
 
 const normalizeScoreInput = (value: string) => value.replace(/,/g, ".");
@@ -90,6 +90,52 @@ const parseScore = (value: string) => {
   const parsed = Number.parseFloat(normalized);
   if (!Number.isFinite(parsed) || parsed < 1 || parsed > 5) return null;
   return Math.round(parsed * 10) / 10;
+};
+
+type ScoreInputProps = {
+  label: string;
+  field: keyof ScoresState;
+  scores: ScoresState;
+  setScores: React.Dispatch<React.SetStateAction<ScoresState>>;
+};
+
+const ScoreInput = ({ label, field, scores, setScores }: ScoreInputProps) => {
+  const val = scores[field];
+  const num = parseFloat(val);
+  const display = Number.isFinite(num) ? num : 0;
+  return (
+    <div className="space-y-1.5">
+      <Label>{label}</Label>
+      <div className="flex items-center gap-3">
+        <Input
+          type="text"
+          inputMode="decimal"
+          placeholder="e.g. 4.4"
+          autoComplete="off"
+          enterKeyHint="done"
+          value={val}
+          onChange={(e) => {
+            const nextValue = normalizeScoreInput(e.target.value);
+            if (/^$|^\d{0,2}(?:\.\d?)?$/.test(nextValue)) {
+              setScores((s) => ({ ...s, [field]: nextValue }));
+            }
+          }}
+          onBlur={(e) => {
+            const parsed = parseScore(e.target.value);
+            setScores((s) => ({
+              ...s,
+              [field]: parsed == null ? normalizeScoreInput(e.target.value).trim() : parsed.toFixed(1),
+            }));
+          }}
+          className="w-24 no-spinner"
+        />
+        <StarsDisplay value={display} size={18} />
+        <span className="text-sm text-muted-foreground tabular-nums">
+          {Number.isFinite(num) ? num.toFixed(1) : "—"} / 5
+        </span>
+      </div>
+    </div>
+  );
 };
 
 const Admin = () => {
