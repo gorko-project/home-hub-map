@@ -340,7 +340,7 @@ const Admin = () => {
             value={val}
             onChange={(e) => {
               const nextValue = normalizeScoreInput(e.target.value);
-              if (/^$|^\d{0,2}(?:\.\d{0,2})?$/.test(nextValue)) {
+              if (/^$|^\d{0,2}(?:\.\d?)?$/.test(nextValue)) {
                 setScores((s) => ({ ...s, [field]: nextValue }));
               }
             }}
