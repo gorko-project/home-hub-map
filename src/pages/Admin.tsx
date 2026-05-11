@@ -266,7 +266,7 @@ const Admin = () => {
       });
     } else {
       setEditingScoreId(null);
-      setScores({ ...blankScores, composite: b.composite_score != null ? String(b.composite_score) : "2.5" });
+      setScores({ ...blankScores, composite: b.composite_score != null ? String(b.composite_score) : "" });
     }
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
