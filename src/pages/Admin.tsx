@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { slugify, computeComposite } from "@/lib/slug";
+import { slugify } from "@/lib/slug";
 import { Spinner } from "@/components/Spinner";
 import {
   AlertDialog,
@@ -53,11 +53,12 @@ type BuildingRow = {
 };
 
 type ScoresState = {
-  management: number;
-  noise: number;
-  value: number;
-  location: number;
-  condition: number;
+  management: string;
+  noise: string;
+  value: string;
+  location: string;
+  condition: string;
+  composite: string;
 };
 
 const blankForm = {
@@ -73,11 +74,12 @@ const blankForm = {
 };
 
 const blankScores: ScoresState = {
-  management: 2.5,
-  noise: 2.5,
-  value: 2.5,
-  location: 2.5,
-  condition: 2.5,
+  management: "2.5",
+  noise: "2.5",
+  value: "2.5",
+  location: "2.5",
+  condition: "2.5",
+  composite: "2.5",
 };
 
 const Admin = () => {
@@ -96,7 +98,7 @@ const Admin = () => {
 
   const [buildings, setBuildings] = useState<BuildingRow[]>([]);
 
-  const composite = useMemo(() => computeComposite(scores), [scores]);
+  
 
   // Auth + role check
   useEffect(() => {
@@ -199,15 +201,16 @@ const Admin = () => {
     if (data) {
       setEditingScoreId(data.id);
       setScores({
-        management: Number(data.management ?? 2.5),
-        noise: Number(data.noise ?? 2.5),
-        value: Number(data.value ?? 2.5),
-        location: Number(data.location ?? 2.5),
-        condition: Number(data.condition ?? 2.5),
+        management: data.management != null ? String(data.management) : "",
+        noise: data.noise != null ? String(data.noise) : "",
+        value: data.value != null ? String(data.value) : "",
+        location: data.location != null ? String(data.location) : "",
+        condition: data.condition != null ? String(data.condition) : "",
+        composite: b.composite_score != null ? String(b.composite_score) : "",
       });
     } else {
       setEditingScoreId(null);
-      setScores(blankScores);
+      setScores({ ...blankScores, composite: b.composite_score != null ? String(b.composite_score) : "2.5" });
     }
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -232,6 +235,11 @@ const Admin = () => {
     }
     setSaving(true);
     try {
+      const parseScore = (s: string) => {
+        const n = parseFloat(s);
+        return Number.isFinite(n) ? n : null;
+      };
+      const compositeNum = parseScore(scores.composite);
       const payload = {
         name: form.name,
         slug: form.slug,
@@ -242,7 +250,7 @@ const Admin = () => {
         admin_notes: form.admin_notes || null,
         photo_url: form.photo_url || null,
         status: form.status,
-        composite_score: Number(composite.toFixed(2)),
+        composite_score: compositeNum,
       };
 
       let buildingId = editingId;
@@ -261,7 +269,14 @@ const Admin = () => {
 
       if (!buildingId) throw new Error("Missing building id");
 
-      const scorePayload = { ...scores, building_id: buildingId };
+      const scorePayload = {
+        building_id: buildingId,
+        management: parseScore(scores.management),
+        noise: parseScore(scores.noise),
+        value: parseScore(scores.value),
+        location: parseScore(scores.location),
+        condition: parseScore(scores.condition),
+      };
       if (editingScoreId) {
         const { error } = await supabase
           .from("building_scores")
@@ -304,30 +319,27 @@ const Admin = () => {
     field: keyof ScoresState;
   }) => {
     const val = scores[field];
+    const num = parseFloat(val);
+    const display = Number.isFinite(num) ? num : 0;
     return (
       <div className="space-y-1.5">
         <Label>{label}</Label>
         <div className="flex items-center gap-3">
           <Input
             type="number"
+            inputMode="decimal"
             min={1}
             max={5}
             step={0.1}
-            value={Number.isFinite(val) ? val : ""}
-            onChange={(e) => {
-              const raw = e.target.value;
-              if (raw === "") {
-                setScores((s) => ({ ...s, [field]: 0 }));
-                return;
-              }
-              const n = Math.max(1, Math.min(5, parseFloat(raw)));
-              if (!Number.isNaN(n)) setScores((s) => ({ ...s, [field]: n }));
-            }}
-            className="w-24"
+            value={val}
+            onChange={(e) =>
+              setScores((s) => ({ ...s, [field]: e.target.value }))
+            }
+            className="w-24 no-spinner"
           />
-          <StarsDisplay value={val} size={18} />
+          <StarsDisplay value={display} size={18} />
           <span className="text-sm text-muted-foreground tabular-nums">
-            {val.toFixed(1)} / 5
+            {Number.isFinite(num) ? num.toFixed(1) : "—"} / 5
           </span>
         </div>
       </div>
@@ -426,13 +438,8 @@ const Admin = () => {
                 <ScoreInput label="Building Condition (15%)" field="condition" />
               </div>
 
-              <div className="md:col-span-2 flex items-center justify-between rounded-lg bg-muted p-4">
-                <span className="text-sm">Composite score</span>
-                <div className="flex items-center gap-3">
-                  <StarsDisplay value={composite} size={22} />
-                  <span className="text-2xl font-bold tabular-nums">{composite.toFixed(1)}</span>
-                  <span className="text-sm text-muted-foreground">/ 5</span>
-                </div>
+              <div className="md:col-span-2 pt-4 border-t">
+                <ScoreInput label="Composite score" field="composite" />
               </div>
 
               <div className="md:col-span-2 flex gap-2">
