@@ -5,7 +5,7 @@ import { APIProvider, Map, AdvancedMarker, Pin, InfoWindow, useMap, useMapsLibra
 import { Search, X } from "lucide-react";
 import homeMarker from "@/assets/home-marker.svg";
 import { Navbar } from "@/components/Navbar";
-import { Button } from "@/components/ui/button";
+
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/Spinner";
 import { StarsDisplay } from "@/components/Stars";
