@@ -319,30 +319,27 @@ const Admin = () => {
     field: keyof ScoresState;
   }) => {
     const val = scores[field];
+    const num = parseFloat(val);
+    const display = Number.isFinite(num) ? num : 0;
     return (
       <div className="space-y-1.5">
         <Label>{label}</Label>
         <div className="flex items-center gap-3">
           <Input
             type="number"
+            inputMode="decimal"
             min={1}
             max={5}
             step={0.1}
-            value={Number.isFinite(val) ? val : ""}
-            onChange={(e) => {
-              const raw = e.target.value;
-              if (raw === "") {
-                setScores((s) => ({ ...s, [field]: 0 }));
-                return;
-              }
-              const n = Math.max(1, Math.min(5, parseFloat(raw)));
-              if (!Number.isNaN(n)) setScores((s) => ({ ...s, [field]: n }));
-            }}
-            className="w-24"
+            value={val}
+            onChange={(e) =>
+              setScores((s) => ({ ...s, [field]: e.target.value }))
+            }
+            className="w-24 no-spinner"
           />
-          <StarsDisplay value={val} size={18} />
+          <StarsDisplay value={display} size={18} />
           <span className="text-sm text-muted-foreground tabular-nums">
-            {val.toFixed(1)} / 5
+            {Number.isFinite(num) ? num.toFixed(1) : "—"} / 5
           </span>
         </div>
       </div>
