@@ -454,15 +454,15 @@ const Admin = () => {
               </div>
 
               <div className="md:col-span-2 grid gap-4 md:grid-cols-2 pt-4 border-t">
-                <ScoreInput label="Management (30%)" field="management" />
-                <ScoreInput label="Quietness (20%)" field="noise" />
-                <ScoreInput label="Value for Money (20%)" field="value" />
-                <ScoreInput label="Location (15%)" field="location" />
-                <ScoreInput label="Building Condition (15%)" field="condition" />
+                <ScoreInput label="Management (30%)" field="management" scores={scores} setScores={setScores} />
+                <ScoreInput label="Quietness (20%)" field="noise" scores={scores} setScores={setScores} />
+                <ScoreInput label="Value for Money (20%)" field="value" scores={scores} setScores={setScores} />
+                <ScoreInput label="Location (15%)" field="location" scores={scores} setScores={setScores} />
+                <ScoreInput label="Building Condition (15%)" field="condition" scores={scores} setScores={setScores} />
               </div>
 
               <div className="md:col-span-2 pt-4 border-t">
-                <ScoreInput label="Composite score" field="composite" />
+                <ScoreInput label="Composite score" field="composite" scores={scores} setScores={setScores} />
               </div>
 
               <div className="md:col-span-2 flex gap-2">
