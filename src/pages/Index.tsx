@@ -281,10 +281,10 @@ const Index = () => {
               >
                 <div className="w-[260px] overflow-hidden rounded-xl bg-white" style={{ boxShadow: "0 4px 16px rgba(0,0,0,0.12)" }}>
                   <div className="relative">
-                    {selected.photo_url ? (
-                      <img src={selected.photo_url} alt={selected.name} className="w-full h-[140px] object-cover" />
+                    {selectedPhoto ? (
+                      <img src={selectedPhoto} alt={selected.name} className="w-full h-[140px] object-cover" />
                     ) : (
-                      <div className="w-full h-[140px] bg-muted" />
+                      <div className="w-full h-[140px] bg-gray-200" />
                     )}
                     <button
                       type="button"
