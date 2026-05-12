@@ -96,11 +96,29 @@ type Building = {
 const Index = () => {
   const [buildings, setBuildings] = useState<Building[]>([]);
   const [selected, setSelected] = useState<Building | null>(null);
+  const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
   const [searchPin, setSearchPin] = useState<{ lat: number; lng: number } | null>(null);
   const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null);
   const [zoom, setZoom] = useState(12);
+
+  useEffect(() => {
+    if (!selected) { setSelectedPhoto(null); return; }
+    let cancelled = false;
+    supabase
+      .from("building_photos")
+      .select("url,is_primary,display_order")
+      .eq("building_id", selected.id)
+      .order("is_primary", { ascending: false })
+      .order("display_order", { ascending: true })
+      .limit(1)
+      .then(({ data }) => {
+        if (cancelled) return;
+        setSelectedPhoto(data?.[0]?.url ?? selected.photo_url ?? null);
+      });
+    return () => { cancelled = true; };
+  }, [selected]);
 
   useEffect(() => {
     if (!mapInstance) return;
@@ -263,10 +281,10 @@ const Index = () => {
               >
                 <div className="w-[260px] overflow-hidden rounded-xl bg-white" style={{ boxShadow: "0 4px 16px rgba(0,0,0,0.12)" }}>
                   <div className="relative">
-                    {selected.photo_url ? (
-                      <img src={selected.photo_url} alt={selected.name} className="w-full h-[140px] object-cover" />
+                    {selectedPhoto ? (
+                      <img src={selectedPhoto} alt={selected.name} className="w-full h-[140px] object-cover" />
                     ) : (
-                      <div className="w-full h-[140px] bg-muted" />
+                      <div className="w-full h-[140px] bg-gray-200" />
                     )}
                     <button
                       type="button"

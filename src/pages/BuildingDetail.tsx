@@ -95,6 +95,12 @@ const blankReview = {
 
 const splitLines = (s: string | null) =>
   (s ?? "")
+    .split(/\r?\n/)
+    .map((x) => x.trim())
+    .filter(Boolean);
+
+const splitTags = (s: string | null) =>
+  (s ?? "")
     .split(/\r?\n|,/)
     .map((x) => x.trim())
     .filter(Boolean);
@@ -297,8 +303,8 @@ const BuildingDetail = () => {
 
   const pros = splitLines(building.summary_pros);
   const cons = splitLines(building.summary_cons);
-  const amenities = splitLines(building.building_amenities);
-  const unitFeatures = splitLines(building.unit_features);
+  const amenities = splitTags(building.building_amenities);
+  const unitFeatures = splitTags(building.unit_features);
 
   const showWalk =
     building.walk_score != null || building.transit_score != null || building.bike_score != null;
@@ -311,9 +317,9 @@ const BuildingDetail = () => {
     <button
       type="button"
       onClick={onClick}
-      className={`relative bg-gray-200 dark:bg-gray-800 overflow-hidden ${rounded ?? ""} ${url ? "cursor-pointer" : "cursor-default"}`}
+      className={`relative w-full h-full bg-gray-200 dark:bg-gray-800 overflow-hidden ${rounded ?? ""} ${url ? "cursor-pointer" : "cursor-default"}`}
     >
-      {url && <img src={url} alt="" className="w-full h-full object-cover" />}
+      {url && <img src={url} alt="" className="block w-full h-full object-cover" />}
     </button>
   );
 
@@ -331,16 +337,16 @@ const BuildingDetail = () => {
 
       <main className="container max-w-6xl py-5 flex-1">
         {/* Photo Grid */}
-        <div className="grid grid-cols-2 gap-[2px] h-[240px] relative">
+        <div className="grid grid-cols-2 gap-[2px] h-[240px] max-h-[240px] overflow-hidden relative">
           <PhotoSlot url={main?.url} onClick={main ? () => { setGalleryIdx(0); setGalleryOpen(true); } : undefined} rounded="rounded-l-md" />
-          <div className="grid grid-cols-2 grid-rows-2 gap-[2px] relative">
+          <div className="grid grid-cols-2 grid-rows-2 gap-[2px] h-full overflow-hidden relative">
             {[0, 1, 2, 3].map((i) => {
               const ph = sides[i];
               const last = i === 3;
               const rounded =
                 i === 1 ? "rounded-tr-md" : i === 3 ? "rounded-br-md" : "";
               return (
-                <div key={i} className={`relative md:block ${i >= 2 ? "hidden md:block" : ""}`}>
+                <div key={i} className={`relative h-full overflow-hidden md:block ${i >= 2 ? "hidden md:block" : ""}`}>
                   <PhotoSlot
                     url={ph?.url}
                     onClick={ph ? () => { setGalleryIdx(i + 1); setGalleryOpen(true); } : undefined}
