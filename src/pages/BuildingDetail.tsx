@@ -337,16 +337,16 @@ const BuildingDetail = () => {
 
       <main className="container max-w-6xl py-5 flex-1">
         {/* Photo Grid */}
-        <div className="grid grid-cols-2 gap-[2px] h-[240px] relative">
+        <div className="grid grid-cols-2 gap-[2px] h-[240px] max-h-[240px] overflow-hidden relative">
           <PhotoSlot url={main?.url} onClick={main ? () => { setGalleryIdx(0); setGalleryOpen(true); } : undefined} rounded="rounded-l-md" />
-          <div className="grid grid-cols-2 grid-rows-2 gap-[2px] relative">
+          <div className="grid grid-cols-2 grid-rows-2 gap-[2px] h-full overflow-hidden relative">
             {[0, 1, 2, 3].map((i) => {
               const ph = sides[i];
               const last = i === 3;
               const rounded =
                 i === 1 ? "rounded-tr-md" : i === 3 ? "rounded-br-md" : "";
               return (
-                <div key={i} className={`relative md:block ${i >= 2 ? "hidden md:block" : ""}`}>
+                <div key={i} className={`relative h-full overflow-hidden md:block ${i >= 2 ? "hidden md:block" : ""}`}>
                   <PhotoSlot
                     url={ph?.url}
                     onClick={ph ? () => { setGalleryIdx(i + 1); setGalleryOpen(true); } : undefined}
