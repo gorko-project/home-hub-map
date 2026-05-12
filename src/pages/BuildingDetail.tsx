@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, Trash2 } from "lucide-react";
+import { ArrowLeft, Trash2, Camera, Footprints, BusFront, Bike, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/Spinner";
@@ -32,6 +32,11 @@ type Building = {
   admin_notes: string | null;
   summary_pros: string | null;
   summary_cons: string | null;
+  walk_score: number | null;
+  transit_score: number | null;
+  bike_score: number | null;
+  building_amenities: string | null;
+  unit_features: string | null;
 };
 
 type Scores = {
@@ -41,6 +46,8 @@ type Scores = {
   location: number | null;
   condition: number | null;
 };
+
+type Photo = { id: string; url: string; is_primary: boolean; display_order: number };
 
 const CATEGORIES: { key: keyof Scores; label: string }[] = [
   { key: "management", label: "Management" },
@@ -75,23 +82,6 @@ type Review = {
   profiles?: { display_name: string | null } | null;
 };
 
-const ScoreBar = ({ label, score }: { label: string; score: number | null }) => {
-  const pct = score != null ? Math.max(0, Math.min(1, score / 5)) * 100 : 0;
-  return (
-    <div className="space-y-1">
-      <div className="flex items-center justify-between text-[13px]">
-        <span className="text-ink font-medium">{label}</span>
-        <span className="text-ink-muted tabular-nums">
-          {score != null ? `${Number(score).toFixed(1)} / 5` : "—"}
-        </span>
-      </div>
-      <div className="h-1.5 w-full rounded-full bg-hairline overflow-hidden">
-        <div className="h-full rounded-full bg-brand transition-all" style={{ width: `${pct}%` }} />
-      </div>
-    </div>
-  );
-};
-
 const blankReview = {
   overall: 0,
   management: 0,
@@ -103,10 +93,54 @@ const blankReview = {
   tenancy_period: "",
 };
 
+const splitLines = (s: string | null) =>
+  (s ?? "")
+    .split(/\r?\n|,/)
+    .map((x) => x.trim())
+    .filter(Boolean);
+
+const RatingRow = ({ label, score }: { label: string; score: number | null }) => (
+  <div className="flex items-center justify-between py-1.5">
+    <span className="text-[13px] text-gray-700 dark:text-gray-300">{label}</span>
+    <div className="flex items-center gap-2">
+      <StarsDisplay value={score ?? 0} size={14} />
+      <span className="text-[13px] font-medium tabular-nums text-[#f97316] w-8 text-right">
+        {score != null ? Number(score).toFixed(1) : "—"}
+      </span>
+    </div>
+  </div>
+);
+
+const ScoreCircle = ({
+  icon: Icon,
+  label,
+  score,
+}: {
+  icon: typeof Footprints;
+  label: string;
+  score: number | null;
+}) => (
+  <div className="flex items-center gap-3 py-1.5">
+    <div
+      className="flex items-center justify-center rounded-full shrink-0"
+      style={{ width: 44, height: 44, backgroundColor: "#f97316" }}
+    >
+      <Icon className="text-white" size={22} />
+    </div>
+    <div className="text-[13px]">
+      <span className="font-semibold text-gray-900 dark:text-gray-100">{label}</span>{" "}
+      <span className="text-gray-500 dark:text-gray-400 tabular-nums">
+        {score != null ? `${score} / 100` : "— / 100"}
+      </span>
+    </div>
+  </div>
+);
+
 const BuildingDetail = () => {
   const { slug } = useParams<{ slug: string }>();
   const [building, setBuilding] = useState<Building | null>(null);
   const [scores, setScores] = useState<Scores | null>(null);
+  const [photos, setPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [userId, setUserId] = useState<string | null>(null);
@@ -116,6 +150,9 @@ const BuildingDetail = () => {
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState(blankReview);
   const [submitting, setSubmitting] = useState(false);
+
+  const [galleryOpen, setGalleryOpen] = useState(false);
+  const [galleryIdx, setGalleryIdx] = useState(0);
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data }) => {
@@ -139,46 +176,46 @@ const BuildingDetail = () => {
       setLoading(true);
       const { data: b } = await supabase
         .from("buildings")
-        .select("id,name,slug,address,neighborhood,photo_url,composite_score,admin_notes,summary_pros,summary_cons")
+        .select("id,name,slug,address,neighborhood,photo_url,composite_score,admin_notes,summary_pros,summary_cons,walk_score,transit_score,bike_score,building_amenities,unit_features")
         .eq("slug", slug)
         .maybeSingle();
-      setBuilding(b);
+      setBuilding(b as Building | null);
       if (b) {
-        const { data: s } = await supabase
-          .from("building_scores")
-          .select("management,noise,value,location,condition")
-          .eq("building_id", b.id)
-          .maybeSingle();
+        const [{ data: s }, { data: ph }] = await Promise.all([
+          supabase
+            .from("building_scores")
+            .select("management,noise,value,location,condition")
+            .eq("building_id", b.id)
+            .maybeSingle(),
+          supabase
+            .from("building_photos")
+            .select("id,url,is_primary,display_order")
+            .eq("building_id", b.id)
+            .order("is_primary", { ascending: false })
+            .order("display_order", { ascending: true }),
+        ]);
         setScores(s);
+        setPhotos((ph ?? []) as Photo[]);
       }
       setLoading(false);
     })();
   }, [slug]);
 
   const loadReviews = async (buildingId: string) => {
-    const { data } = await supabase
+    const { data: raw } = await supabase
       .from("building_reviews")
-      .select("*, profiles:profiles!building_reviews_user_id_fkey(display_name)")
+      .select("*")
       .eq("building_id", buildingId)
       .order("created_at", { ascending: false });
-    // FK join may not exist; fallback to manual join
-    let rows = (data ?? []) as any[];
-    if (!data || (rows[0] && rows[0].profiles === undefined)) {
-      const { data: raw } = await supabase
-        .from("building_reviews")
-        .select("*")
-        .eq("building_id", buildingId)
-        .order("created_at", { ascending: false });
-      rows = raw ?? [];
-      const ids = Array.from(new Set(rows.map((r) => r.user_id)));
-      if (ids.length) {
-        const { data: profs } = await supabase
-          .from("profiles")
-          .select("user_id,display_name")
-          .in("user_id", ids);
-        const map = new Map((profs ?? []).map((p: any) => [p.user_id, p.display_name]));
-        rows = rows.map((r) => ({ ...r, profiles: { display_name: map.get(r.user_id) ?? null } }));
-      }
+    let rows = (raw ?? []) as any[];
+    const ids = Array.from(new Set(rows.map((r) => r.user_id)));
+    if (ids.length) {
+      const { data: profs } = await supabase
+        .from("profiles")
+        .select("user_id,display_name")
+        .in("user_id", ids);
+      const map = new Map((profs ?? []).map((p: any) => [p.user_id, p.display_name]));
+      rows = rows.map((r) => ({ ...r, profiles: { display_name: map.get(r.user_id) ?? null } }));
     }
     setReviews(rows as Review[]);
     const mine = userId ? rows.find((r: any) => r.user_id === userId) ?? null : null;
@@ -205,14 +242,8 @@ const BuildingDetail = () => {
   const submitReview = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!userId || !building) return;
-    if (form.overall < 1) {
-      toast.error("Please select an overall star rating");
-      return;
-    }
-    if (form.comment.trim().length < 20) {
-      toast.error("Comment must be at least 20 characters");
-      return;
-    }
+    if (form.overall < 1) return toast.error("Please select an overall star rating");
+    if (form.comment.trim().length < 20) return toast.error("Comment must be at least 20 characters");
     setSubmitting(true);
     const payload = {
       building_id: building.id,
@@ -230,10 +261,7 @@ const BuildingDetail = () => {
       ? await supabase.from("building_reviews").update(payload).eq("id", myReview.id)
       : await supabase.from("building_reviews").insert(payload);
     setSubmitting(false);
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
+    if (error) return toast.error(error.message);
     toast.success(myReview ? "Review updated" : "Review submitted");
     setEditing(false);
     loadReviews(building.id);
@@ -241,16 +269,12 @@ const BuildingDetail = () => {
 
   const deleteReview = async (id: string) => {
     const { error } = await supabase.from("building_reviews").delete().eq("id", id);
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
+    if (error) return toast.error(error.message);
     toast.success("Review deleted");
     if (building) loadReviews(building.id);
   };
 
   if (loading) return <Spinner className="min-h-screen" />;
-
   if (!building) {
     return (
       <div className="p-8 space-y-4">
@@ -262,143 +286,222 @@ const BuildingDetail = () => {
     );
   }
 
-  const avgOverall =
-    reviews.length > 0
-      ? reviews.reduce((s, r) => s + r.overall, 0) / reviews.length
-      : null;
+  // Photo list with fallbacks: prefer photos table, fallback to building.photo_url
+  const allPhotos: Photo[] = photos.length > 0
+    ? photos
+    : building.photo_url
+      ? [{ id: "legacy", url: building.photo_url, is_primary: true, display_order: 0 }]
+      : [];
+  const main = allPhotos[0];
+  const sides = allPhotos.slice(1, 5);
 
+  const pros = splitLines(building.summary_pros);
+  const cons = splitLines(building.summary_cons);
+  const amenities = splitLines(building.building_amenities);
+  const unitFeatures = splitLines(building.unit_features);
+
+  const showWalk =
+    building.walk_score != null || building.transit_score != null || building.bike_score != null;
+
+  const avgOverall =
+    reviews.length > 0 ? reviews.reduce((s, r) => s + r.overall, 0) / reviews.length : null;
   const showForm = userId && (!myReview || editing);
 
+  const PhotoSlot = ({ url, onClick, rounded }: { url?: string; onClick?: () => void; rounded?: string }) => (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`relative bg-gray-200 dark:bg-gray-800 overflow-hidden ${rounded ?? ""} ${url ? "cursor-pointer" : "cursor-default"}`}
+    >
+      {url && <img src={url} alt="" className="w-full h-full object-cover" />}
+    </button>
+  );
+
   return (
-    <div className="min-h-screen bg-background">
-      <section className="relative h-[240px] w-full overflow-hidden bg-muted">
-        {building.photo_url ? (
-          <img src={building.photo_url} alt={building.name} className="h-full w-full object-cover" />
-        ) : (
-          <div className="h-full w-full bg-gradient-to-br from-muted to-muted-foreground/20" />
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/15 to-transparent" />
+    <div className="min-h-screen bg-white dark:bg-gray-950 flex flex-col">
+      {/* Navbar */}
+      <header className="border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-950">
+        <div className="container max-w-6xl flex items-center justify-between h-14">
+          <Link to="/" className="inline-flex items-center gap-1.5 text-[14px] font-medium text-[#f97316] hover:opacity-80">
+            <ArrowLeft className="h-4 w-4" /> Back to map
+          </Link>
+          <span className="text-[15px] font-semibold text-gray-900 dark:text-gray-100">ApartmentMap</span>
+        </div>
+      </header>
 
-        <Link
-          to="/"
-          className="absolute top-4 left-4 inline-flex items-center gap-2 rounded-full bg-white/95 px-3 py-1.5 text-[13px] font-medium text-ink shadow hover:bg-white"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to map
-        </Link>
+      <main className="container max-w-6xl py-5 flex-1">
+        {/* Photo Grid */}
+        <div className="grid grid-cols-2 gap-[2px] h-[240px] relative">
+          <PhotoSlot url={main?.url} onClick={main ? () => { setGalleryIdx(0); setGalleryOpen(true); } : undefined} rounded="rounded-l-md" />
+          <div className="grid grid-cols-2 grid-rows-2 gap-[2px] relative">
+            {[0, 1, 2, 3].map((i) => {
+              const ph = sides[i];
+              const last = i === 3;
+              const rounded =
+                i === 1 ? "rounded-tr-md" : i === 3 ? "rounded-br-md" : "";
+              return (
+                <div key={i} className={`relative md:block ${i >= 2 ? "hidden md:block" : ""}`}>
+                  <PhotoSlot
+                    url={ph?.url}
+                    onClick={ph ? () => { setGalleryIdx(i + 1); setGalleryOpen(true); } : undefined}
+                    rounded={rounded}
+                  />
+                  {last && allPhotos.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => { setGalleryIdx(0); setGalleryOpen(true); }}
+                      className="absolute bottom-2 right-2 inline-flex items-center gap-1.5 bg-white text-gray-900 text-[12px] font-semibold px-2.5 py-1.5 rounded-md shadow border border-gray-200"
+                    >
+                      <Camera className="h-3.5 w-3.5" />
+                      See all {allPhotos.length} photos
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
 
-        <div className="absolute bottom-5 left-6 right-6 text-white">
-          <h1 className="text-[28px] md:text-[34px] font-bold tracking-tight drop-shadow-lg leading-tight">{building.name}</h1>
-          {(building.address || building.neighborhood) && (
-            <p className="mt-1 text-[14px] text-white/90 drop-shadow">
+        {/* Building info */}
+        <div className="mt-5">
+          <h1 className="text-[22px] font-medium text-gray-900 dark:text-gray-100">{building.name}</h1>
+          <div className="mt-1 flex items-center flex-wrap gap-2">
+            <span className="text-[13px] text-gray-500 dark:text-gray-400">
               {building.address}
               {building.neighborhood ? ` · ${building.neighborhood}` : ""}
-            </p>
-          )}
-        </div>
-      </section>
-
-      <section className="container max-w-6xl py-8">
-        <div className="grid gap-5 md:grid-cols-2 items-stretch">
-          <div className="rounded-[12px] border border-hairline bg-card p-5 shadow-sm flex flex-col h-full">
-            <h2 className="text-[18px] font-semibold text-ink mb-4">Rating</h2>
-            <div className="mb-5 flex items-center gap-3">
-              <span className="text-5xl font-bold tabular-nums text-ink">
-                {building.composite_score != null ? Number(building.composite_score).toFixed(1) : "—"}
+            </span>
+            {building.composite_score != null && (
+              <span
+                className="inline-flex items-center gap-1 rounded-full text-white text-[12px] font-semibold px-2.5 py-0.5"
+                style={{ backgroundColor: "#f97316" }}
+              >
+                {Number(building.composite_score).toFixed(1)} ★
               </span>
-              <div className="flex flex-col">
-                <StarsDisplay value={building.composite_score ?? 0} size={20} />
-                <span className="text-[12px] text-ink-muted mt-1">out of 5</span>
-              </div>
-            </div>
-            <div className="space-y-3">
-              {CATEGORIES.map((c) => (
-                <ScoreBar key={c.key} label={c.label} score={scores ? (scores[c.key] as number | null) : null} />
-              ))}
-            </div>
-            <div className="mt-auto pt-4 text-[12px] text-ink-muted border-t border-hairline mt-5">
-              {reviews.length} {reviews.length === 1 ? "review" : "reviews"} · Admin curated rating
-            </div>
+            )}
           </div>
-
-          {(() => {
-            const pros = (building.summary_pros ?? "").split("\n").map((s) => s.trim()).filter(Boolean);
-            const cons = (building.summary_cons ?? "").split("\n").map((s) => s.trim()).filter(Boolean);
-            const hasAny = pros.length > 0 || cons.length > 0;
-            return (
-              <div className="rounded-[12px] border border-hairline bg-card p-5 shadow-sm flex flex-col h-full">
-                <h2 className="text-[18px] font-semibold text-ink mb-4">Summary</h2>
-                {hasAny ? (
-                  <div className="space-y-4 text-[14px] leading-relaxed text-ink/90">
-                    {pros.length > 0 && (
-                      <div>
-                        <div className="font-bold text-ink mb-2">Pros</div>
-                        <ul className="space-y-1.5">
-                          {pros.map((p, i) => (
-                            <li key={i} className="flex gap-2">
-                              <span className="text-green-600 shrink-0">✅</span>
-                              <span>{p}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                    {cons.length > 0 && (
-                      <div>
-                        <div className="font-bold text-ink mb-2">Cons</div>
-                        <ul className="space-y-1.5">
-                          {cons.map((c, i) => (
-                            <li key={i} className="flex gap-2">
-                              <span className="text-red-600 shrink-0">❌</span>
-                              <span>{c}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                    <p className="italic text-[12px] text-ink-muted pt-2">
-                      *Based on publicly available resident reviews from the past 12 months.
-                    </p>
-                  </div>
-                ) : (
-                  <p className="text-[14px] text-ink-muted">No summary yet.</p>
-                )}
-              </div>
-            );
-          })()}
         </div>
 
-        {/* Reviews */}
-        <div className="mt-6 rounded-[12px] border border-hairline bg-card p-5 shadow-sm space-y-5">
+        {/* Rating + Walk Transit Bike */}
+        <section className="mt-6 pt-6 border-t border-gray-100 dark:border-gray-800">
+          <div className={`grid gap-6 ${showWalk ? "md:grid-cols-2" : "md:grid-cols-1"}`}>
+            <div className={showWalk ? "md:pr-6 md:border-r md:border-gray-100 md:dark:border-gray-800" : ""}>
+              <h2 className="text-[16px] font-medium text-gray-900 dark:text-gray-100 mb-4">Rating</h2>
+              <div className="divide-y divide-gray-100 dark:divide-gray-800">
+                {CATEGORIES.map((c) => (
+                  <RatingRow key={c.key} label={c.label} score={scores ? (scores[c.key] as number | null) : null} />
+                ))}
+              </div>
+            </div>
+
+            {showWalk && (
+              <div>
+                <h2 className="text-[16px] font-medium text-gray-900 dark:text-gray-100 mb-4">Walk, Transit &amp; Bike</h2>
+                <div>
+                  <ScoreCircle icon={Footprints} label="Walk Score" score={building.walk_score} />
+                  <ScoreCircle icon={BusFront} label="Transit Score" score={building.transit_score} />
+                  <ScoreCircle icon={Bike} label="Bike Score" score={building.bike_score} />
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* Pros */}
+        {pros.length > 0 && (
+          <section className="mt-6 pt-6 border-t border-gray-100 dark:border-gray-800">
+            <h2 className="text-[16px] font-medium text-gray-900 dark:text-gray-100 mb-4">Pros</h2>
+            <ul className="space-y-1.5">
+              {pros.map((p, i) => (
+                <li key={i} className="text-[13px] text-gray-500 dark:text-gray-400 leading-[1.55] flex gap-2">
+                  <span className="shrink-0">✅</span>
+                  <span>{p}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {/* Cons */}
+        {cons.length > 0 && (
+          <section className="mt-6 pt-6 border-t border-gray-100 dark:border-gray-800">
+            <h2 className="text-[16px] font-medium text-gray-900 dark:text-gray-100 mb-4">Cons</h2>
+            <ul className="space-y-1.5">
+              {cons.map((c, i) => (
+                <li key={i} className="text-[13px] text-gray-500 dark:text-gray-400 leading-[1.55] flex gap-2">
+                  <span className="shrink-0">❌</span>
+                  <span>{c}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {/* Facts, features & policies */}
+        {(amenities.length > 0 || unitFeatures.length > 0) && (
+          <section className="mt-6 pt-6 border-t border-gray-100 dark:border-gray-800">
+            <h2 className="text-[16px] font-medium text-gray-900 dark:text-gray-100 mb-4">Facts, features &amp; policies</h2>
+            {amenities.length > 0 && (
+              <div>
+                <div className="text-[12px] font-medium text-gray-500 dark:text-gray-400 mb-2">Building amenities</div>
+                <div className="flex flex-wrap">
+                  {amenities.map((a, i) => (
+                    <span
+                      key={i}
+                      className="bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-[12px] rounded-md m-[3px]"
+                      style={{ padding: "5px 10px" }}
+                    >
+                      {a}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+            {unitFeatures.length > 0 && (
+              <div className="mt-4">
+                <div className="text-[12px] font-medium text-gray-500 dark:text-gray-400 mb-2">Unit features</div>
+                <div className="flex flex-wrap">
+                  {unitFeatures.map((u, i) => (
+                    <span
+                      key={i}
+                      className="bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-[12px] rounded-md m-[3px]"
+                      style={{ padding: "5px 10px" }}
+                    >
+                      {u}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* Reviews (preserved functionality) */}
+        <section className="mt-6 pt-6 border-t border-gray-100 dark:border-gray-800 space-y-5">
           <div className="flex items-baseline justify-between flex-wrap gap-2">
-            <h2 className="text-[18px] font-semibold text-ink">Reviews</h2>
+            <h2 className="text-[16px] font-medium text-gray-900 dark:text-gray-100">Reviews</h2>
             {avgOverall != null && (
               <div className="flex items-center gap-2 text-[13px]">
                 <StarsDisplay value={avgOverall} size={16} />
-                <span className="font-semibold tabular-nums text-ink">{avgOverall.toFixed(1)}</span>
-                <span className="text-ink-muted">({reviews.length})</span>
+                <span className="font-semibold tabular-nums text-gray-900 dark:text-gray-100">{avgOverall.toFixed(1)}</span>
+                <span className="text-gray-500 dark:text-gray-400">({reviews.length})</span>
               </div>
             )}
           </div>
 
-          {/* Form / login prompt */}
           {!userId ? (
-            <p className="text-[14px] text-ink-muted">
+            <p className="text-[14px] text-gray-500 dark:text-gray-400">
               <Link to="/auth" className="underline">Log in</Link> to write a review.
             </p>
           ) : showForm ? (
-            <form onSubmit={submitReview} className="space-y-4 rounded-[12px] border border-hairline p-5">
-              <div
-                className="rounded-[12px] border border-brand/30 p-4"
-                style={{ background: "#fff7ed" }}
-              >
-                <Label className="mb-2 block text-[16px] font-bold text-ink">Overall rating</Label>
+            <form onSubmit={submitReview} className="space-y-4 rounded-md border border-gray-100 dark:border-gray-800 p-5">
+              <div className="rounded-md p-4" style={{ background: "#fff7ed" }}>
+                <Label className="mb-2 block text-[16px] font-bold text-gray-900">Overall rating</Label>
                 <StarsInput value={form.overall} onChange={(v) => setForm({ ...form, overall: v })} size={28} />
               </div>
               <div className="grid gap-3 grid-cols-2">
-                {REVIEW_CATEGORIES.filter((c) => c.key !== "building_condition" && c.key).slice(0, 4).map((c) => (
+                {REVIEW_CATEGORIES.filter((c) => c.key !== "building_condition").slice(0, 4).map((c) => (
                   <div key={c.key}>
-                    <Label className="mb-1 block text-[14px] text-ink">{c.label}</Label>
+                    <Label className="mb-1 block text-[14px]">{c.label}</Label>
                     <StarsInput
                       value={form[c.key as ReviewCategoryKey]}
                       onChange={(v) => setForm({ ...form, [c.key]: v })}
@@ -407,7 +510,7 @@ const BuildingDetail = () => {
                   </div>
                 ))}
                 <div className="col-span-2">
-                  <Label className="mb-1 block text-[14px] text-ink">Building Condition</Label>
+                  <Label className="mb-1 block text-[14px]">Building Condition</Label>
                   <StarsInput
                     value={form.building_condition}
                     onChange={(v) => setForm({ ...form, building_condition: v })}
@@ -416,62 +519,47 @@ const BuildingDetail = () => {
                 </div>
               </div>
               <div>
-                <Label htmlFor="comment" className="text-[13px] text-ink">Comment (min 20 characters)</Label>
-                <Textarea
-                  id="comment"
-                  rows={4}
-                  value={form.comment}
-                  onChange={(e) => setForm({ ...form, comment: e.target.value })}
-                  required
-                  className="mt-1"
-                />
+                <Label htmlFor="comment" className="text-[13px]">Comment (min 20 characters)</Label>
+                <Textarea id="comment" rows={4} value={form.comment} onChange={(e) => setForm({ ...form, comment: e.target.value })} required className="mt-1" />
               </div>
               <div>
-                <Label htmlFor="tenancy" className="text-[13px] text-ink">Tenancy period (optional)</Label>
-                <Input
-                  id="tenancy"
-                  placeholder="e.g. 2022-2024"
-                  value={form.tenancy_period}
-                  onChange={(e) => setForm({ ...form, tenancy_period: e.target.value })}
-                  className="mt-1"
-                />
+                <Label htmlFor="tenancy" className="text-[13px]">Tenancy period (optional)</Label>
+                <Input id="tenancy" placeholder="e.g. 2022-2024" value={form.tenancy_period} onChange={(e) => setForm({ ...form, tenancy_period: e.target.value })} className="mt-1" />
               </div>
               <div className="flex gap-2">
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="flex-1 rounded-[12px] bg-brand text-white text-[14px] font-semibold py-2.5 hover:bg-brand/90 transition-colors disabled:opacity-60"
+                  className="flex-1 rounded-md text-white text-[14px] font-semibold py-2.5 transition-colors disabled:opacity-60"
+                  style={{ backgroundColor: "#f97316" }}
                 >
                   {submitting ? "Saving…" : myReview ? "Update review" : "Submit review"}
                 </button>
                 {myReview && (
-                  <Button type="button" variant="outline" onClick={() => setEditing(false)}>
-                    Cancel
-                  </Button>
+                  <Button type="button" variant="outline" onClick={() => setEditing(false)}>Cancel</Button>
                 )}
               </div>
             </form>
           ) : myReview ? (
-            <div className="rounded-[12px] border border-hairline p-4 space-y-2">
-              <p className="text-[13px] text-ink-muted">Your review is shown below.</p>
+            <div className="rounded-md border border-gray-100 dark:border-gray-800 p-4 space-y-2">
+              <p className="text-[13px] text-gray-500 dark:text-gray-400">Your review is shown below.</p>
               <Button size="sm" variant="outline" onClick={() => setEditing(true)}>Edit my review</Button>
             </div>
           ) : null}
 
-          {/* Review list */}
           <div className="space-y-3">
             {reviews.length === 0 ? (
-              <p className="text-[14px] text-ink-muted">No reviews yet. Be the first!</p>
+              <p className="text-[14px] text-gray-500 dark:text-gray-400">No reviews yet. Be the first!</p>
             ) : (
               reviews.map((r) => (
-                <div key={r.id} className="rounded-[12px] border border-hairline p-5 space-y-3">
+                <div key={r.id} className="rounded-md border border-gray-100 dark:border-gray-800 p-5 space-y-3">
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <div className="font-semibold text-[14px] text-ink">{r.profiles?.display_name ?? "Anonymous"}</div>
+                      <div className="font-semibold text-[14px] text-gray-900 dark:text-gray-100">{r.profiles?.display_name ?? "Anonymous"}</div>
                       <div className="flex items-center gap-2 mt-1">
                         <StarsDisplay value={r.overall} size={14} />
-                        <span className="text-[13px] font-medium tabular-nums text-ink">{r.overall.toFixed(1)}</span>
-                        <span className="text-[12px] text-ink-muted">
+                        <span className="text-[13px] font-medium tabular-nums text-gray-900 dark:text-gray-100">{r.overall.toFixed(1)}</span>
+                        <span className="text-[12px] text-gray-500 dark:text-gray-400">
                           {new Date(r.created_at).toLocaleDateString()}
                           {r.tenancy_period ? ` · ${r.tenancy_period}` : ""}
                         </span>
@@ -495,13 +583,56 @@ const BuildingDetail = () => {
                       </AlertDialog>
                     )}
                   </div>
-                  <p className="text-[14px] text-ink/90 whitespace-pre-wrap">{r.comment}</p>
+                  <p className="text-[14px] whitespace-pre-wrap text-gray-700 dark:text-gray-300">{r.comment}</p>
                 </div>
               ))
             )}
           </div>
+        </section>
+      </main>
+
+      {/* Footer */}
+      <footer className="w-full bg-gray-50 dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800 mt-10">
+        <p className="text-[11px] italic text-center text-gray-500 dark:text-gray-400 py-3 px-4">
+          *Based on publicly available resident reviews from the past 12 months.
+        </p>
+      </footer>
+
+      {/* Gallery modal */}
+      {galleryOpen && allPhotos.length > 0 && (
+        <div className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center" onClick={() => setGalleryOpen(false)}>
+          <button
+            onClick={(e) => { e.stopPropagation(); setGalleryOpen(false); }}
+            className="absolute top-4 right-4 text-white/90 hover:text-white p-2"
+            aria-label="Close"
+          >
+            <X className="h-6 w-6" />
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); setGalleryIdx((i) => (i - 1 + allPhotos.length) % allPhotos.length); }}
+            className="absolute left-4 text-white/90 hover:text-white p-2"
+            aria-label="Previous"
+          >
+            <ChevronLeft className="h-8 w-8" />
+          </button>
+          <img
+            src={allPhotos[galleryIdx]?.url}
+            alt=""
+            className="max-h-[85vh] max-w-[90vw] object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
+          <button
+            onClick={(e) => { e.stopPropagation(); setGalleryIdx((i) => (i + 1) % allPhotos.length); }}
+            className="absolute right-4 text-white/90 hover:text-white p-2"
+            aria-label="Next"
+          >
+            <ChevronRight className="h-8 w-8" />
+          </button>
+          <div className="absolute bottom-4 left-0 right-0 text-center text-white/80 text-[12px]">
+            {galleryIdx + 1} / {allPhotos.length}
+          </div>
         </div>
-      </section>
+      )}
     </div>
   );
 };
