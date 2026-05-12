@@ -14,6 +14,41 @@ export type Database = {
   }
   public: {
     Tables: {
+      building_photos: {
+        Row: {
+          building_id: string
+          created_at: string
+          display_order: number
+          id: string
+          is_primary: boolean
+          url: string
+        }
+        Insert: {
+          building_id: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_primary?: boolean
+          url: string
+        }
+        Update: {
+          building_id?: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_primary?: boolean
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "building_photos_building_id_fkey"
+            columns: ["building_id"]
+            isOneToOne: false
+            referencedRelation: "buildings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       building_reviews: {
         Row: {
           building_condition: number
@@ -115,6 +150,8 @@ export type Database = {
         Row: {
           address: string | null
           admin_notes: string | null
+          bike_score: number | null
+          building_amenities: string | null
           composite_score: number | null
           created_at: string
           id: string
@@ -127,10 +164,15 @@ export type Database = {
           status: string
           summary_cons: string | null
           summary_pros: string | null
+          transit_score: number | null
+          unit_features: string | null
+          walk_score: number | null
         }
         Insert: {
           address?: string | null
           admin_notes?: string | null
+          bike_score?: number | null
+          building_amenities?: string | null
           composite_score?: number | null
           created_at?: string
           id?: string
@@ -143,10 +185,15 @@ export type Database = {
           status?: string
           summary_cons?: string | null
           summary_pros?: string | null
+          transit_score?: number | null
+          unit_features?: string | null
+          walk_score?: number | null
         }
         Update: {
           address?: string | null
           admin_notes?: string | null
+          bike_score?: number | null
+          building_amenities?: string | null
           composite_score?: number | null
           created_at?: string
           id?: string
@@ -159,6 +206,9 @@ export type Database = {
           status?: string
           summary_cons?: string | null
           summary_pros?: string | null
+          transit_score?: number | null
+          unit_features?: string | null
+          walk_score?: number | null
         }
         Relationships: []
       }
