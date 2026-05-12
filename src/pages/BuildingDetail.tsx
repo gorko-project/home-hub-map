@@ -95,6 +95,12 @@ const blankReview = {
 
 const splitLines = (s: string | null) =>
   (s ?? "")
+    .split(/\r?\n/)
+    .map((x) => x.trim())
+    .filter(Boolean);
+
+const splitTags = (s: string | null) =>
+  (s ?? "")
     .split(/\r?\n|,/)
     .map((x) => x.trim())
     .filter(Boolean);
