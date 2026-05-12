@@ -27,6 +27,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { slugify } from "@/lib/slug";
 import { Spinner } from "@/components/Spinner";
+import { Check, Star, Trash2 } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -53,6 +54,11 @@ type BuildingRow = {
   summary_cons: string | null;
   photo_url: string | null;
   composite_score: number | null;
+  walk_score: number | null;
+  transit_score: number | null;
+  bike_score: number | null;
+  building_amenities: string | null;
+  unit_features: string | null;
 };
 
 type ScoresState = {
@@ -62,6 +68,13 @@ type ScoresState = {
   location: string;
   condition: string;
   composite: string;
+};
+
+type PhotoRow = {
+  id: string;
+  url: string;
+  is_primary: boolean;
+  display_order: number;
 };
 
 const blankForm = {
@@ -76,6 +89,11 @@ const blankForm = {
   summary_cons: "",
   photo_url: "",
   status: "draft" as "draft" | "published",
+  walk_score: "",
+  transit_score: "",
+  bike_score: "",
+  building_amenities: "",
+  unit_features: "",
 };
 
 const blankScores: ScoresState = {
@@ -95,6 +113,14 @@ const parseScore = (value: string) => {
   const parsed = Number.parseFloat(normalized);
   if (!Number.isFinite(parsed) || parsed < 1 || parsed > 5) return null;
   return Math.round(parsed * 10) / 10;
+};
+
+const parseIntScore = (value: string) => {
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  const n = Number.parseInt(trimmed, 10);
+  if (!Number.isFinite(n) || n < 0 || n > 100) return null;
+  return n;
 };
 
 type ScoreInputProps = {
@@ -158,8 +184,7 @@ const Admin = () => {
   const [uploading, setUploading] = useState(false);
 
   const [buildings, setBuildings] = useState<BuildingRow[]>([]);
-
-  
+  const [photos, setPhotos] = useState<PhotoRow[]>([]);
 
   // Auth + role check
   useEffect(() => {
@@ -214,22 +239,71 @@ const Admin = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form.name]);
 
+  const loadPhotos = async (buildingId: string) => {
+    const { data } = await supabase
+      .from("building_photos")
+      .select("id,url,is_primary,display_order")
+      .eq("building_id", buildingId)
+      .order("display_order", { ascending: true });
+    setPhotos((data ?? []) as PhotoRow[]);
+  };
 
-  const handlePhotoUpload = async (file: File) => {
+  const handleMultiPhotoUpload = async (files: FileList) => {
+    if (!editingId) {
+      toast.error("Save the building first to upload photos.");
+      return;
+    }
+    if (photos.length + files.length > 10) {
+      toast.error("Maximum 10 photos per building.");
+      return;
+    }
     setUploading(true);
     try {
-      const ext = file.name.split(".").pop();
-      const path = `${userId}/${Date.now()}.${ext}`;
-      const { error } = await supabase.storage.from("building-photos").upload(path, file);
-      if (error) throw error;
-      const { data } = supabase.storage.from("building-photos").getPublicUrl(path);
-      setForm((f) => ({ ...f, photo_url: data.publicUrl }));
-      toast.success("Photo uploaded");
+      const baseOrder = photos.length;
+      let i = 0;
+      for (const file of Array.from(files)) {
+        const ext = file.name.split(".").pop();
+        const path = `${userId}/${editingId}/${Date.now()}-${i}.${ext}`;
+        const { error: upErr } = await supabase.storage.from("building-photos").upload(path, file);
+        if (upErr) throw upErr;
+        const { data } = supabase.storage.from("building-photos").getPublicUrl(path);
+        const isFirst = photos.length === 0 && i === 0;
+        const { error: insErr } = await supabase.from("building_photos").insert({
+          building_id: editingId,
+          url: data.publicUrl,
+          is_primary: isFirst,
+          display_order: baseOrder + i,
+        });
+        if (insErr) throw insErr;
+        i++;
+      }
+      await loadPhotos(editingId);
+      toast.success("Photos uploaded");
     } catch (err: any) {
       toast.error(err.message ?? "Upload failed");
     } finally {
       setUploading(false);
     }
+  };
+
+  const setMainPhoto = async (id: string) => {
+    if (!editingId) return;
+    await supabase.from("building_photos").update({ is_primary: false }).eq("building_id", editingId);
+    const { error } = await supabase.from("building_photos").update({ is_primary: true }).eq("id", id);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    await loadPhotos(editingId);
+  };
+
+  const deletePhoto = async (id: string) => {
+    const { error } = await supabase.from("building_photos").delete().eq("id", id);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    if (editingId) await loadPhotos(editingId);
   };
 
   const resetForm = () => {
@@ -238,6 +312,7 @@ const Admin = () => {
     setEditingId(null);
     setEditingScoreId(null);
     setSlugTouched(false);
+    setPhotos([]);
   };
 
   const startEdit = async (b: BuildingRow) => {
@@ -255,6 +330,11 @@ const Admin = () => {
       summary_cons: b.summary_cons ?? "",
       photo_url: b.photo_url ?? "",
       status: (b.status as "draft" | "published") ?? "draft",
+      walk_score: b.walk_score != null ? String(b.walk_score) : "",
+      transit_score: b.transit_score != null ? String(b.transit_score) : "",
+      bike_score: b.bike_score != null ? String(b.bike_score) : "",
+      building_amenities: b.building_amenities ?? "",
+      unit_features: b.unit_features ?? "",
     });
     const { data } = await supabase
       .from("building_scores")
@@ -275,11 +355,13 @@ const Admin = () => {
       setEditingScoreId(null);
       setScores({ ...blankScores, composite: b.composite_score != null ? String(b.composite_score) : "" });
     }
+    await loadPhotos(b.id);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleDelete = async (id: string) => {
     await supabase.from("building_scores").delete().eq("building_id", id);
+    await supabase.from("building_photos").delete().eq("building_id", id);
     const { error } = await supabase.from("buildings").delete().eq("id", id);
     if (error) {
       toast.error(error.message);
@@ -312,6 +394,11 @@ const Admin = () => {
         photo_url: form.photo_url || null,
         status: form.status,
         composite_score: compositeNum,
+        walk_score: parseIntScore(form.walk_score),
+        transit_score: parseIntScore(form.transit_score),
+        bike_score: parseIntScore(form.bike_score),
+        building_amenities: form.building_amenities || null,
+        unit_features: form.unit_features || null,
       };
 
       let buildingId = editingId;
@@ -350,7 +437,10 @@ const Admin = () => {
       }
 
       toast.success("Building saved!");
-      resetForm();
+      const wasNew = !editingId;
+      if (wasNew) {
+        resetForm();
+      }
       loadBuildings();
     } catch (err: any) {
       toast.error(err.message ?? "Save failed");
@@ -371,8 +461,6 @@ const Admin = () => {
   if (!isAdmin) {
     return null;
   }
-
-
 
   return (
     <div className="min-h-screen bg-background">
@@ -437,44 +525,36 @@ const Admin = () => {
                 />
               </div>
 
-              <div>
-                <Label htmlFor="pros" className="flex items-center gap-1.5">
-                  <span className="text-green-600">✅</span> Pros
-                </Label>
-                <Textarea
-                  id="pros"
-                  rows={5}
-                  placeholder="Write one item per line"
-                  value={form.summary_pros}
-                  onChange={(e) => setForm({ ...form, summary_pros: e.target.value })}
-                />
-              </div>
+              {/* Summary section */}
+              <div className="md:col-span-2 pt-4 border-t">
+                <h3 className="text-base font-semibold mb-3">Summary (Pros & Cons)</h3>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div>
+                    <Label htmlFor="pros" className="flex items-center gap-1.5">
+                      <span className="text-green-600">✅</span> Summary — Pros
+                    </Label>
+                    <Textarea
+                      id="pros"
+                      rows={5}
+                      placeholder="Write one item per line"
+                      value={form.summary_pros}
+                      onChange={(e) => setForm({ ...form, summary_pros: e.target.value })}
+                    />
+                  </div>
 
-              <div>
-                <Label htmlFor="cons" className="flex items-center gap-1.5">
-                  <span className="text-red-600">❌</span> Cons
-                </Label>
-                <Textarea
-                  id="cons"
-                  rows={5}
-                  placeholder="Write one item per line"
-                  value={form.summary_cons}
-                  onChange={(e) => setForm({ ...form, summary_cons: e.target.value })}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="photo">Photo</Label>
-                <Input
-                  id="photo"
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => e.target.files?.[0] && handlePhotoUpload(e.target.files[0])}
-                  disabled={uploading}
-                />
-                {form.photo_url && (
-                  <img src={form.photo_url} alt="Preview" className="mt-2 h-24 rounded object-cover" />
-                )}
+                  <div>
+                    <Label htmlFor="cons" className="flex items-center gap-1.5">
+                      <span className="text-red-600">❌</span> Summary — Cons
+                    </Label>
+                    <Textarea
+                      id="cons"
+                      rows={5}
+                      placeholder="Write one item per line"
+                      value={form.summary_cons}
+                      onChange={(e) => setForm({ ...form, summary_cons: e.target.value })}
+                    />
+                  </div>
+                </div>
               </div>
 
               <div>
@@ -498,6 +578,105 @@ const Admin = () => {
 
               <div className="md:col-span-2 pt-4 border-t">
                 <ScoreInput label="Composite score" field="composite" scores={scores} setScores={setScores} />
+              </div>
+
+              {/* Walk, Transit & Bike */}
+              <div className="md:col-span-2 pt-4 border-t">
+                <h3 className="text-base font-semibold mb-3">Walk, Transit &amp; Bike Scores</h3>
+                <div className="grid gap-4 md:grid-cols-3">
+                  <div>
+                    <Label htmlFor="walk">Walk Score (0–100)</Label>
+                    <Input id="walk" type="number" min={0} max={100} value={form.walk_score}
+                      onChange={(e) => setForm({ ...form, walk_score: e.target.value })} />
+                  </div>
+                  <div>
+                    <Label htmlFor="transit">Transit Score (0–100)</Label>
+                    <Input id="transit" type="number" min={0} max={100} value={form.transit_score}
+                      onChange={(e) => setForm({ ...form, transit_score: e.target.value })} />
+                  </div>
+                  <div>
+                    <Label htmlFor="bike">Bike Score (0–100)</Label>
+                    <Input id="bike" type="number" min={0} max={100} value={form.bike_score}
+                      onChange={(e) => setForm({ ...form, bike_score: e.target.value })} />
+                  </div>
+                </div>
+              </div>
+
+              {/* Facts, features & policies */}
+              <div className="md:col-span-2 pt-4 border-t">
+                <h3 className="text-base font-semibold mb-3">Facts, features &amp; policies</h3>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div>
+                    <Label htmlFor="amenities">Building amenities</Label>
+                    <Textarea
+                      id="amenities"
+                      rows={5}
+                      placeholder="One item per line (e.g. Pool, Gym, Doorman)"
+                      value={form.building_amenities}
+                      onChange={(e) => setForm({ ...form, building_amenities: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="unitfeats">Unit features</Label>
+                    <Textarea
+                      id="unitfeats"
+                      rows={5}
+                      placeholder="One item per line (e.g. In-unit laundry, Dishwasher)"
+                      value={form.unit_features}
+                      onChange={(e) => setForm({ ...form, unit_features: e.target.value })}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Photos */}
+              <div className="md:col-span-2 pt-4 border-t">
+                <h3 className="text-base font-semibold mb-3">Photos (up to 10)</h3>
+                {!editingId ? (
+                  <p className="text-sm text-muted-foreground">Save the building first to upload photos.</p>
+                ) : (
+                  <>
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={(e) => e.target.files && e.target.files.length > 0 && handleMultiPhotoUpload(e.target.files)}
+                      disabled={uploading || photos.length >= 10}
+                    />
+                    {photos.length > 0 && (
+                      <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                        {photos.map((p) => (
+                          <div key={p.id} className="relative group rounded-md overflow-hidden border">
+                            <img src={p.url} alt="" className="w-full h-28 object-cover" />
+                            {p.is_primary && (
+                              <span className="absolute top-1 left-1 inline-flex items-center gap-1 rounded-full bg-[#f97316] text-white text-[10px] font-semibold px-2 py-0.5">
+                                <Check className="h-3 w-3" /> Main
+                              </span>
+                            )}
+                            <div className="absolute inset-x-0 bottom-0 flex justify-between p-1 bg-black/40 opacity-0 group-hover:opacity-100 transition">
+                              {!p.is_primary && (
+                                <button
+                                  type="button"
+                                  onClick={() => setMainPhoto(p.id)}
+                                  className="text-[10px] bg-white/90 text-gray-900 px-2 py-0.5 rounded inline-flex items-center gap-1"
+                                >
+                                  <Star className="h-3 w-3" /> Set main
+                                </button>
+                              )}
+                              <button
+                                type="button"
+                                onClick={() => deletePhoto(p.id)}
+                                className="ml-auto text-[10px] bg-red-600 text-white px-2 py-0.5 rounded inline-flex items-center gap-1"
+                              >
+                                <Trash2 className="h-3 w-3" /> Delete
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
 
               <div className="md:col-span-2 flex gap-2">
