@@ -303,8 +303,8 @@ const BuildingDetail = () => {
 
   const pros = splitLines(building.summary_pros);
   const cons = splitLines(building.summary_cons);
-  const amenities = splitLines(building.building_amenities);
-  const unitFeatures = splitLines(building.unit_features);
+  const amenities = splitTags(building.building_amenities);
+  const unitFeatures = splitTags(building.unit_features);
 
   const showWalk =
     building.walk_score != null || building.transit_score != null || building.bike_score != null;
