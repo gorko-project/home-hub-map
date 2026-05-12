@@ -317,9 +317,9 @@ const BuildingDetail = () => {
     <button
       type="button"
       onClick={onClick}
-      className={`relative bg-gray-200 dark:bg-gray-800 overflow-hidden ${rounded ?? ""} ${url ? "cursor-pointer" : "cursor-default"}`}
+      className={`relative w-full h-full bg-gray-200 dark:bg-gray-800 overflow-hidden ${rounded ?? ""} ${url ? "cursor-pointer" : "cursor-default"}`}
     >
-      {url && <img src={url} alt="" className="w-full h-full object-cover" />}
+      {url && <img src={url} alt="" className="block w-full h-full object-cover" />}
     </button>
   );
 
