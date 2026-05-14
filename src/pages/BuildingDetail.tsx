@@ -249,18 +249,17 @@ const BuildingDetail = () => {
     e.preventDefault();
     if (!userId || !building) return;
     if (form.overall < 1) return toast.error("Please select an overall star rating");
-    if (form.comment.trim().length < 20) return toast.error("Comment must be at least 20 characters");
     setSubmitting(true);
     const payload = {
       building_id: building.id,
       user_id: userId,
       overall: form.overall,
-      management: form.management,
-      quietness: form.quietness,
-      value_for_money: form.value_for_money,
-      location: form.location,
-      building_condition: form.building_condition,
-      comment: form.comment.trim(),
+      management: form.management || null,
+      quietness: form.quietness || null,
+      value_for_money: form.value_for_money || null,
+      location: form.location || null,
+      building_condition: form.building_condition || null,
+      comment: form.comment.trim() || null,
       tenancy_period: form.tenancy_period.trim() || null,
     };
     const { error } = myReview
