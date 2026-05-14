@@ -447,7 +447,7 @@ const BuildingDetail = () => {
         )}
 
         {/* Facts, features & policies */}
-        {(amenities.length > 0 || unitFeatures.length > 0) && (
+        {(amenities.length > 0 || unitFeatures.length > 0 || building.dogs_allowed != null || building.cats_allowed != null) && (
           <section className="mt-6 pt-6 border-t border-gray-100 dark:border-gray-800">
             <h2 className="text-[16px] font-medium text-gray-900 dark:text-gray-100 mb-4">Facts, features &amp; policies</h2>
             {amenities.length > 0 && (
@@ -481,6 +481,24 @@ const BuildingDetail = () => {
                   ))}
                 </div>
               </div>
+            )}
+            {(building.dogs_allowed != null || building.cats_allowed != null) && (
+              <>
+                {(amenities.length > 0 || unitFeatures.length > 0) && (
+                  <div className="my-4 border-t border-gray-100 dark:border-gray-800" />
+                )}
+                <div className={amenities.length === 0 && unitFeatures.length === 0 ? "" : "mt-4"}>
+                  <div className="text-[12px] font-medium text-gray-500 dark:text-gray-400 mb-2">Pet policy</div>
+                  <div className="flex flex-wrap gap-2">
+                    {building.dogs_allowed != null && (
+                      <PetCard icon={Dog} label="Dogs" allowed={building.dogs_allowed} />
+                    )}
+                    {building.cats_allowed != null && (
+                      <PetCard icon={Cat} label="Cats" allowed={building.cats_allowed} />
+                    )}
+                  </div>
+                </div>
+              </>
             )}
           </section>
         )}
