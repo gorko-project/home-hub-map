@@ -386,8 +386,6 @@ const Admin = () => {
         slug: form.slug,
         address: form.address || null,
         neighborhood: form.neighborhood || null,
-        latitude: form.latitude ? Number(form.latitude) : null,
-        longitude: form.longitude ? Number(form.longitude) : null,
         admin_notes: form.admin_notes || null,
         summary_pros: form.summary_pros || null,
         summary_cons: form.summary_cons || null,
