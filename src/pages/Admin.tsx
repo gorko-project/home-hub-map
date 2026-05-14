@@ -388,13 +388,30 @@ const Admin = () => {
     setSaving(true);
     try {
       const compositeNum = parseScore(scores.composite);
+
+      // Geocode address (always re-geocode if address changed; fall back to existing coords)
+      let latitude: number | null = form.latitude ? Number(form.latitude) : null;
+      let longitude: number | null = form.longitude ? Number(form.longitude) : null;
+      if (form.address?.trim()) {
+        const geo = await geocodeAddress(form.address);
+        if (geo) {
+          latitude = geo.lat;
+          longitude = geo.lng;
+        } else if (latitude == null || longitude == null) {
+          toast.warning("Could not geocode address — pin may not appear on map.");
+        }
+      } else {
+        latitude = null;
+        longitude = null;
+      }
+
       const payload = {
         name: form.name,
         slug: form.slug,
         address: form.address || null,
         neighborhood: form.neighborhood || null,
-        latitude: form.latitude ? Number(form.latitude) : null,
-        longitude: form.longitude ? Number(form.longitude) : null,
+        latitude,
+        longitude,
         admin_notes: form.admin_notes || null,
         summary_pros: form.summary_pros || null,
         summary_cons: form.summary_cons || null,
