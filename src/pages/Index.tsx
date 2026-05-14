@@ -122,11 +122,12 @@ const Index = () => {
 
   useEffect(() => {
     if (!mapInstance) return;
-    const listener = mapInstance.addListener("zoom_changed", () => {
+    const zl = mapInstance.addListener("zoom_changed", () => {
       setZoom(mapInstance.getZoom() ?? 12);
     });
+    const cl = mapInstance.addListener("click", () => setSelected(null));
     setZoom(mapInstance.getZoom() ?? 12);
-    return () => listener.remove();
+    return () => { zl.remove(); cl.remove(); };
   }, [mapInstance]);
 
   useEffect(() => {
