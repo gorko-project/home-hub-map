@@ -323,8 +323,6 @@ const Admin = () => {
       address: b.address ?? "",
       neighborhood: b.neighborhood ?? "",
       slug: b.slug ?? "",
-      latitude: b.latitude != null ? String(b.latitude) : "",
-      longitude: b.longitude != null ? String(b.longitude) : "",
       admin_notes: b.admin_notes ?? "",
       summary_pros: b.summary_pros ?? "",
       summary_cons: b.summary_cons ?? "",
