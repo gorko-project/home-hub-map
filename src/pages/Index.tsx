@@ -556,4 +556,53 @@ const SearchPinMarker = ({ position }: { position: { lat: number; lng: number } 
   return null;
 };
 
+const Geocoder = ({
+  buildings,
+  coords,
+  setCoords,
+}: {
+  buildings: Building[];
+  coords: Record<string, LatLng>;
+  setCoords: React.Dispatch<React.SetStateAction<Record<string, LatLng>>>;
+}) => {
+  const geoLib = useMapsLibrary("geocoding");
+  const cacheRef = useRef<Record<string, LatLng>>({});
+
+  useEffect(() => {
+    if (!geoLib) return;
+    const geocoder = new geoLib.Geocoder();
+
+    buildings.forEach((b) => {
+      if (!b.address) return;
+      if (coords[b.id] || cacheRef.current[b.id]) return;
+      const addrKey = b.address;
+
+      // localStorage cache to avoid re-geocoding across reloads
+      try {
+        const cached = localStorage.getItem(`geo:${addrKey}`);
+        if (cached) {
+          const parsed = JSON.parse(cached) as LatLng;
+          cacheRef.current[b.id] = parsed;
+          setCoords((prev) => ({ ...prev, [b.id]: parsed }));
+          return;
+        }
+      } catch {}
+
+      cacheRef.current[b.id] = { lat: 0, lng: 0 }; // mark in-flight
+      geocoder.geocode({ address: addrKey }, (results, status) => {
+        if (status === "OK" && results && results[0]) {
+          const loc = results[0].geometry.location;
+          const pos = { lat: loc.lat(), lng: loc.lng() };
+          try {
+            localStorage.setItem(`geo:${addrKey}`, JSON.stringify(pos));
+          } catch {}
+          setCoords((prev) => ({ ...prev, [b.id]: pos }));
+        }
+      });
+    });
+  }, [geoLib, buildings, coords, setCoords]);
+
+  return null;
+};
+
 export default Index;
