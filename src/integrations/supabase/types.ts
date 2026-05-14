@@ -157,6 +157,8 @@ export type Database = {
           created_at: string
           dogs_allowed: boolean | null
           id: string
+          latitude: number | null
+          longitude: number | null
           name: string
           neighborhood: string | null
           photo_url: string | null
@@ -178,6 +180,8 @@ export type Database = {
           created_at?: string
           dogs_allowed?: boolean | null
           id?: string
+          latitude?: number | null
+          longitude?: number | null
           name: string
           neighborhood?: string | null
           photo_url?: string | null
@@ -199,6 +203,8 @@ export type Database = {
           created_at?: string
           dogs_allowed?: boolean | null
           id?: string
+          latitude?: number | null
+          longitude?: number | null
           name?: string
           neighborhood?: string | null
           photo_url?: string | null

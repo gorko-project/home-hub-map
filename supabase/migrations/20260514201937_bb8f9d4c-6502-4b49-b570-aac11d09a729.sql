@@ -1,1 +1,0 @@
-ALTER TABLE public.buildings DROP COLUMN IF EXISTS latitude, DROP COLUMN IF EXISTS longitude;

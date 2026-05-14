@@ -46,6 +46,8 @@ type BuildingRow = {
   slug: string;
   address: string | null;
   neighborhood: string | null;
+  latitude: number | null;
+  longitude: number | null;
   status: string;
   admin_notes: string | null;
   summary_pros: string | null;
@@ -82,6 +84,8 @@ const blankForm = {
   address: "",
   neighborhood: "",
   slug: "",
+  latitude: "",
+  longitude: "",
   admin_notes: "",
   summary_pros: "",
   summary_cons: "",
@@ -323,6 +327,8 @@ const Admin = () => {
       address: b.address ?? "",
       neighborhood: b.neighborhood ?? "",
       slug: b.slug ?? "",
+      latitude: b.latitude != null ? String(b.latitude) : "",
+      longitude: b.longitude != null ? String(b.longitude) : "",
       admin_notes: b.admin_notes ?? "",
       summary_pros: b.summary_pros ?? "",
       summary_cons: b.summary_cons ?? "",
@@ -386,6 +392,8 @@ const Admin = () => {
         slug: form.slug,
         address: form.address || null,
         neighborhood: form.neighborhood || null,
+        latitude: form.latitude ? Number(form.latitude) : null,
+        longitude: form.longitude ? Number(form.longitude) : null,
         admin_notes: form.admin_notes || null,
         summary_pros: form.summary_pros || null,
         summary_cons: form.summary_cons || null,
@@ -505,6 +513,15 @@ const Admin = () => {
               <div className="md:col-span-2">
                 <Label htmlFor="address">Address</Label>
                 <Input id="address" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
+              </div>
+
+              <div>
+                <Label htmlFor="lat">Latitude</Label>
+                <Input id="lat" type="number" step="any" value={form.latitude} onChange={(e) => setForm({ ...form, latitude: e.target.value })} />
+              </div>
+              <div>
+                <Label htmlFor="lng">Longitude</Label>
+                <Input id="lng" type="number" step="any" value={form.longitude} onChange={(e) => setForm({ ...form, longitude: e.target.value })} />
               </div>
 
               <div className="md:col-span-2">

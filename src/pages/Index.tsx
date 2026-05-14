@@ -87,15 +87,14 @@ type Building = {
   slug: string;
   address: string | null;
   neighborhood: string | null;
+  latitude: number | null;
+  longitude: number | null;
   composite_score: number | null;
   photo_url: string | null;
 };
 
-type LatLng = { lat: number; lng: number };
-
 const Index = () => {
   const [buildings, setBuildings] = useState<Building[]>([]);
-  const [coords, setCoords] = useState<Record<string, LatLng>>({});
   const [selected, setSelected] = useState<Building | null>(null);
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -134,11 +133,11 @@ const Index = () => {
   useEffect(() => {
     supabase
       .from("buildings")
-      .select("id,name,slug,address,neighborhood,composite_score,photo_url")
+      .select("id,name,slug,address,neighborhood,latitude,longitude,composite_score,photo_url")
       .eq("status", "published")
       .then(({ data, error }) => {
         if (error) console.error(error);
-        else setBuildings((data ?? []).filter((b) => !!b.address));
+        else setBuildings((data ?? []).filter((b) => b.latitude != null && b.longitude != null));
         setLoading(false);
       });
   }, []);
@@ -173,9 +172,8 @@ const Index = () => {
             map={mapInstance}
             buildingMatches={filtered === buildings ? [] : filtered}
             onPickBuilding={(b) => {
-              const c = coords[b.id];
-              if (mapInstance && c) {
-                mapInstance.panTo(c);
+              if (mapInstance && b.latitude != null && b.longitude != null) {
+                mapInstance.panTo({ lat: Number(b.latitude), lng: Number(b.longitude) });
                 mapInstance.setZoom(17);
               }
               setSelected(b);
@@ -196,10 +194,7 @@ const Index = () => {
           >
             <MapInstanceBridge onReady={setMapInstance} />
             <SearchPinMarker position={searchPin} />
-            <Geocoder buildings={buildings} coords={coords} setCoords={setCoords} />
             {!selected && buildings.map((b) => {
-              const c = coords[b.id];
-              if (!c) return null;
               const z = zoom;
               let iconSize = 10, scoreSize = 11, padding = "3px 7px", radius = 6;
               if (z >= 15 && z <= 16) { iconSize = 12; scoreSize = 13; padding = "4px 9px"; radius = 7; }
@@ -216,7 +211,7 @@ const Index = () => {
               return (
                 <HTMLMarker
                   key={b.id}
-                  position={c}
+                  position={{ lat: Number(b.latitude), lng: Number(b.longitude) }}
                   onClick={() => setSelected(b)}
                   zIndex={1000}
                 >
@@ -278,9 +273,9 @@ const Index = () => {
               );
             })}
 
-            {selected && coords[selected.id] && (
+            {selected && (
               <InfoWindow
-                position={coords[selected.id]}
+                position={{ lat: Number(selected.latitude), lng: Number(selected.longitude) }}
                 onCloseClick={() => setSelected(null)}
                 pixelOffset={[0, -40]}
                 zIndex={9999}
@@ -552,55 +547,6 @@ const SearchPinMarker = ({ position }: { position: { lat: number; lng: number } 
       markerRef.current = null;
     };
   }, []);
-
-  return null;
-};
-
-const Geocoder = ({
-  buildings,
-  coords,
-  setCoords,
-}: {
-  buildings: Building[];
-  coords: Record<string, LatLng>;
-  setCoords: React.Dispatch<React.SetStateAction<Record<string, LatLng>>>;
-}) => {
-  const geoLib = useMapsLibrary("geocoding");
-  const cacheRef = useRef<Record<string, LatLng>>({});
-
-  useEffect(() => {
-    if (!geoLib) return;
-    const geocoder = new geoLib.Geocoder();
-
-    buildings.forEach((b) => {
-      if (!b.address) return;
-      if (coords[b.id] || cacheRef.current[b.id]) return;
-      const addrKey = b.address;
-
-      // localStorage cache to avoid re-geocoding across reloads
-      try {
-        const cached = localStorage.getItem(`geo:${addrKey}`);
-        if (cached) {
-          const parsed = JSON.parse(cached) as LatLng;
-          cacheRef.current[b.id] = parsed;
-          setCoords((prev) => ({ ...prev, [b.id]: parsed }));
-          return;
-        }
-      } catch {}
-
-      cacheRef.current[b.id] = { lat: 0, lng: 0 }; // mark in-flight
-      geocoder.geocode({ address: addrKey }, (results, status) => {
-        if (status === "OK" && results && results[0]) {
-          const loc = results[0].geometry.location;
-          const pos = { lat: loc.lat(), lng: loc.lng() };
-          try {
-            localStorage.setItem(`geo:${addrKey}`, JSON.stringify(pos));
-          } catch {}
-          setCoords((prev) => ({ ...prev, [b.id]: pos }));
-        }
-      });
-    });
-  }, [geoLib, buildings, coords, setCoords]);
 
   return null;
 };
