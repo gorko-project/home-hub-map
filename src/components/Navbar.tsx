@@ -15,12 +15,16 @@ export const Navbar = () => {
         setIsAdmin(false);
         return;
       }
-      const { data } = await supabase
+      const { data: userData } = await supabase.auth.getUser();
+      console.log("[auth-debug] getUser().id =", userData.user?.id, "email =", userData.user?.email);
+
+      const { data, error } = await supabase
         .from("user_roles")
         .select("role")
         .eq("user_id", uid)
         .eq("role", "admin")
         .maybeSingle();
+      console.log("[auth-debug] user_roles lookup", { uid, data, error, isAdmin: !!data });
       setIsAdmin(!!data);
     };
 
