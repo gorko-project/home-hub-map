@@ -278,6 +278,7 @@ const Index = () => {
                 position={{ lat: Number(selected.latitude), lng: Number(selected.longitude) }}
                 onCloseClick={() => setSelected(null)}
                 pixelOffset={[0, -40]}
+                zIndex={9999}
                 headerDisabled
               >
                 <div className="w-[260px] overflow-hidden rounded-xl bg-white" style={{ boxShadow: "0 4px 16px rgba(0,0,0,0.12)" }}>
