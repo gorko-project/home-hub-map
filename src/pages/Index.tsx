@@ -278,9 +278,9 @@ const Index = () => {
               );
             })}
 
-            {selected && (
+            {selected && coords[selected.id] && (
               <InfoWindow
-                position={{ lat: Number(selected.latitude), lng: Number(selected.longitude) }}
+                position={coords[selected.id]}
                 onCloseClick={() => setSelected(null)}
                 pixelOffset={[0, -40]}
                 zIndex={9999}
