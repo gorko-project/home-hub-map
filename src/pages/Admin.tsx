@@ -26,6 +26,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { slugify } from "@/lib/slug";
+import { geocodeAddress } from "@/lib/geocode";
 import { Spinner } from "@/components/Spinner";
 import { Check, Star, Trash2 } from "lucide-react";
 import {
@@ -387,13 +388,30 @@ const Admin = () => {
     setSaving(true);
     try {
       const compositeNum = parseScore(scores.composite);
+
+      // Geocode address (always re-geocode if address changed; fall back to existing coords)
+      let latitude: number | null = form.latitude ? Number(form.latitude) : null;
+      let longitude: number | null = form.longitude ? Number(form.longitude) : null;
+      if (form.address?.trim()) {
+        const geo = await geocodeAddress(form.address);
+        if (geo) {
+          latitude = geo.lat;
+          longitude = geo.lng;
+        } else if (latitude == null || longitude == null) {
+          toast.warning("Could not geocode address — pin may not appear on map.");
+        }
+      } else {
+        latitude = null;
+        longitude = null;
+      }
+
       const payload = {
         name: form.name,
         slug: form.slug,
         address: form.address || null,
         neighborhood: form.neighborhood || null,
-        latitude: form.latitude ? Number(form.latitude) : null,
-        longitude: form.longitude ? Number(form.longitude) : null,
+        latitude,
+        longitude,
         admin_notes: form.admin_notes || null,
         summary_pros: form.summary_pros || null,
         summary_cons: form.summary_cons || null,
@@ -515,14 +533,6 @@ const Admin = () => {
                 <Input id="address" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
               </div>
 
-              <div>
-                <Label htmlFor="lat">Latitude</Label>
-                <Input id="lat" type="number" step="any" value={form.latitude} onChange={(e) => setForm({ ...form, latitude: e.target.value })} />
-              </div>
-              <div>
-                <Label htmlFor="lng">Longitude</Label>
-                <Input id="lng" type="number" step="any" value={form.longitude} onChange={(e) => setForm({ ...form, longitude: e.target.value })} />
-              </div>
 
               <div className="md:col-span-2">
                 <Label htmlFor="notes">Admin notes (internal)</Label>
