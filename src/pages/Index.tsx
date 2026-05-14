@@ -122,11 +122,12 @@ const Index = () => {
 
   useEffect(() => {
     if (!mapInstance) return;
-    const listener = mapInstance.addListener("zoom_changed", () => {
+    const zl = mapInstance.addListener("zoom_changed", () => {
       setZoom(mapInstance.getZoom() ?? 12);
     });
+    const cl = mapInstance.addListener("click", () => setSelected(null));
     setZoom(mapInstance.getZoom() ?? 12);
-    return () => listener.remove();
+    return () => { zl.remove(); cl.remove(); };
   }, [mapInstance]);
 
   useEffect(() => {
@@ -193,7 +194,7 @@ const Index = () => {
           >
             <MapInstanceBridge onReady={setMapInstance} />
             <SearchPinMarker position={searchPin} />
-            {buildings.map((b) => {
+            {!selected && buildings.map((b) => {
               const z = zoom;
               let iconSize = 10, scoreSize = 11, padding = "3px 7px", radius = 6;
               if (z >= 15 && z <= 16) { iconSize = 12; scoreSize = 13; padding = "4px 9px"; radius = 7; }
@@ -277,6 +278,7 @@ const Index = () => {
                 position={{ lat: Number(selected.latitude), lng: Number(selected.longitude) }}
                 onCloseClick={() => setSelected(null)}
                 pixelOffset={[0, -40]}
+                zIndex={9999}
                 headerDisabled
               >
                 <div className="w-[260px] overflow-hidden rounded-xl bg-white" style={{ boxShadow: "0 4px 16px rgba(0,0,0,0.12)" }}>

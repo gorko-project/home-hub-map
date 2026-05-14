@@ -249,18 +249,17 @@ const BuildingDetail = () => {
     e.preventDefault();
     if (!userId || !building) return;
     if (form.overall < 1) return toast.error("Please select an overall star rating");
-    if (form.comment.trim().length < 20) return toast.error("Comment must be at least 20 characters");
     setSubmitting(true);
     const payload = {
       building_id: building.id,
       user_id: userId,
       overall: form.overall,
-      management: form.management,
-      quietness: form.quietness,
-      value_for_money: form.value_for_money,
-      location: form.location,
-      building_condition: form.building_condition,
-      comment: form.comment.trim(),
+      management: form.management || null,
+      quietness: form.quietness || null,
+      value_for_money: form.value_for_money || null,
+      location: form.location || null,
+      building_condition: form.building_condition || null,
+      comment: form.comment.trim() || null,
       tenancy_period: form.tenancy_period.trim() || null,
     };
     const { error } = myReview
@@ -337,7 +336,7 @@ const BuildingDetail = () => {
 
       <main className="container max-w-6xl py-5 flex-1">
         {/* Photo Grid */}
-        <div className="grid grid-cols-2 gap-[2px] h-[240px] max-h-[240px] overflow-hidden relative">
+        <div className="grid grid-cols-2 gap-[2px] h-[300px] max-h-[300px] overflow-hidden relative">
           <PhotoSlot url={main?.url} onClick={main ? () => { setGalleryIdx(0); setGalleryOpen(true); } : undefined} rounded="rounded-l-md" />
           <div className="grid grid-cols-2 grid-rows-2 gap-[2px] h-full overflow-hidden relative">
             {[0, 1, 2, 3].map((i) => {
@@ -525,8 +524,8 @@ const BuildingDetail = () => {
                 </div>
               </div>
               <div>
-                <Label htmlFor="comment" className="text-[13px]">Comment (min 20 characters)</Label>
-                <Textarea id="comment" rows={4} value={form.comment} onChange={(e) => setForm({ ...form, comment: e.target.value })} required className="mt-1" />
+                <Label htmlFor="comment" className="text-[13px]">Comment</Label>
+                <Textarea id="comment" rows={4} value={form.comment} onChange={(e) => setForm({ ...form, comment: e.target.value })} className="mt-1" />
               </div>
               <div>
                 <Label htmlFor="tenancy" className="text-[13px]">Tenancy period (optional)</Label>
@@ -535,9 +534,9 @@ const BuildingDetail = () => {
               <div className="flex gap-2">
                 <button
                   type="submit"
-                  disabled={submitting}
-                  className="flex-1 rounded-md text-white text-[14px] font-semibold py-2.5 transition-colors disabled:opacity-60"
-                  style={{ backgroundColor: "#f97316" }}
+                  disabled={submitting || form.overall < 1}
+                  className="flex-1 rounded-md text-white text-[14px] font-semibold py-2.5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-300"
+                  style={form.overall >= 1 ? { backgroundColor: "#f97316" } : undefined}
                 >
                   {submitting ? "Saving…" : myReview ? "Update review" : "Submit review"}
                 </button>

@@ -51,49 +51,49 @@ export type Database = {
       }
       building_reviews: {
         Row: {
-          building_condition: number
+          building_condition: number | null
           building_id: string
-          comment: string
+          comment: string | null
           created_at: string
           id: string
-          location: number
-          management: number
+          location: number | null
+          management: number | null
           overall: number
-          quietness: number
+          quietness: number | null
           tenancy_period: string | null
           updated_at: string
           user_id: string
-          value_for_money: number
+          value_for_money: number | null
         }
         Insert: {
-          building_condition: number
+          building_condition?: number | null
           building_id: string
-          comment: string
+          comment?: string | null
           created_at?: string
           id?: string
-          location: number
-          management: number
+          location?: number | null
+          management?: number | null
           overall: number
-          quietness: number
+          quietness?: number | null
           tenancy_period?: string | null
           updated_at?: string
           user_id: string
-          value_for_money: number
+          value_for_money?: number | null
         }
         Update: {
-          building_condition?: number
+          building_condition?: number | null
           building_id?: string
-          comment?: string
+          comment?: string | null
           created_at?: string
           id?: string
-          location?: number
-          management?: number
+          location?: number | null
+          management?: number | null
           overall?: number
-          quietness?: number
+          quietness?: number | null
           tenancy_period?: string | null
           updated_at?: string
           user_id?: string
-          value_for_money?: number
+          value_for_money?: number | null
         }
         Relationships: [
           {
