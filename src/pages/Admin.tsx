@@ -82,8 +82,6 @@ const blankForm = {
   address: "",
   neighborhood: "",
   slug: "",
-  latitude: "",
-  longitude: "",
   admin_notes: "",
   summary_pros: "",
   summary_cons: "",
