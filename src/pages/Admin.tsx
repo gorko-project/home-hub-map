@@ -26,6 +26,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { slugify } from "@/lib/slug";
+import { geocodeAddress } from "@/lib/geocode";
 import { Spinner } from "@/components/Spinner";
 import { Check, Star, Trash2 } from "lucide-react";
 import {
