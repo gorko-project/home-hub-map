@@ -524,8 +524,8 @@ const BuildingDetail = () => {
                 </div>
               </div>
               <div>
-                <Label htmlFor="comment" className="text-[13px]">Comment (min 20 characters)</Label>
-                <Textarea id="comment" rows={4} value={form.comment} onChange={(e) => setForm({ ...form, comment: e.target.value })} required className="mt-1" />
+                <Label htmlFor="comment" className="text-[13px]">Comment</Label>
+                <Textarea id="comment" rows={4} value={form.comment} onChange={(e) => setForm({ ...form, comment: e.target.value })} className="mt-1" />
               </div>
               <div>
                 <Label htmlFor="tenancy" className="text-[13px]">Tenancy period (optional)</Label>
@@ -534,9 +534,9 @@ const BuildingDetail = () => {
               <div className="flex gap-2">
                 <button
                   type="submit"
-                  disabled={submitting}
-                  className="flex-1 rounded-md text-white text-[14px] font-semibold py-2.5 transition-colors disabled:opacity-60"
-                  style={{ backgroundColor: "#f97316" }}
+                  disabled={submitting || form.overall < 1}
+                  className="flex-1 rounded-md text-white text-[14px] font-semibold py-2.5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-300"
+                  style={form.overall >= 1 ? { backgroundColor: "#f97316" } : undefined}
                 >
                   {submitting ? "Saving…" : myReview ? "Update review" : "Submit review"}
                 </button>
