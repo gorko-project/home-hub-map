@@ -134,11 +134,11 @@ const Index = () => {
   useEffect(() => {
     supabase
       .from("buildings")
-      .select("id,name,slug,address,neighborhood,latitude,longitude,composite_score,photo_url")
+      .select("id,name,slug,address,neighborhood,composite_score,photo_url")
       .eq("status", "published")
       .then(({ data, error }) => {
         if (error) console.error(error);
-        else setBuildings((data ?? []).filter((b) => b.latitude != null && b.longitude != null));
+        else setBuildings((data ?? []).filter((b) => !!b.address));
         setLoading(false);
       });
   }, []);
