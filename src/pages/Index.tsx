@@ -173,8 +173,9 @@ const Index = () => {
             map={mapInstance}
             buildingMatches={filtered === buildings ? [] : filtered}
             onPickBuilding={(b) => {
-              if (mapInstance && b.latitude != null && b.longitude != null) {
-                mapInstance.panTo({ lat: Number(b.latitude), lng: Number(b.longitude) });
+              const c = coords[b.id];
+              if (mapInstance && c) {
+                mapInstance.panTo(c);
                 mapInstance.setZoom(17);
               }
               setSelected(b);
