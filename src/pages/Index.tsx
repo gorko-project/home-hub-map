@@ -216,7 +216,7 @@ const Index = () => {
               return (
                 <HTMLMarker
                   key={b.id}
-                  position={{ lat: Number(b.latitude), lng: Number(b.longitude) }}
+                  position={c}
                   onClick={() => setSelected(b)}
                   zIndex={1000}
                 >
