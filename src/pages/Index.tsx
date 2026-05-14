@@ -87,11 +87,11 @@ type Building = {
   slug: string;
   address: string | null;
   neighborhood: string | null;
-  latitude: number | null;
-  longitude: number | null;
   composite_score: number | null;
   photo_url: string | null;
 };
+
+type LatLng = { lat: number; lng: number };
 
 const Index = () => {
   const [buildings, setBuildings] = useState<Building[]>([]);
