@@ -507,15 +507,6 @@ const Admin = () => {
                 <Input id="address" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
               </div>
 
-              <div>
-                <Label htmlFor="lat">Latitude</Label>
-                <Input id="lat" type="number" step="any" value={form.latitude} onChange={(e) => setForm({ ...form, latitude: e.target.value })} />
-              </div>
-              <div>
-                <Label htmlFor="lng">Longitude</Label>
-                <Input id="lng" type="number" step="any" value={form.longitude} onChange={(e) => setForm({ ...form, longitude: e.target.value })} />
-              </div>
-
               <div className="md:col-span-2">
                 <Label htmlFor="notes">Admin notes (internal)</Label>
                 <RichTextEditor
