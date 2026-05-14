@@ -131,15 +131,46 @@ const Index = () => {
   }, [mapInstance]);
 
   useEffect(() => {
-    supabase
-      .from("buildings")
-      .select("id,name,slug,address,neighborhood,latitude,longitude,composite_score,photo_url")
-      .eq("status", "published")
-      .then(({ data, error }) => {
-        if (error) console.error(error);
-        else setBuildings((data ?? []).filter((b) => b.latitude != null && b.longitude != null));
+    let cancelled = false;
+    (async () => {
+      const { data, error } = await supabase
+        .from("buildings")
+        .select("id,name,slug,address,neighborhood,latitude,longitude,composite_score,photo_url")
+        .eq("status", "published");
+      if (error) {
+        console.error(error);
         setLoading(false);
-      });
+        return;
+      }
+      const rows = (data ?? []) as Building[];
+
+      // Backfill missing coordinates by geocoding the address
+      const needsGeo = rows.filter(
+        (b) => (b.latitude == null || b.longitude == null) && b.address?.trim(),
+      );
+      if (needsGeo.length > 0) {
+        const { geocodeAddress } = await import("@/lib/geocode");
+        await Promise.all(
+          needsGeo.map(async (b) => {
+            const geo = await geocodeAddress(b.address!);
+            if (!geo) return;
+            b.latitude = geo.lat;
+            b.longitude = geo.lng;
+            await supabase
+              .from("buildings")
+              .update({ latitude: geo.lat, longitude: geo.lng })
+              .eq("id", b.id);
+          }),
+        );
+      }
+
+      if (cancelled) return;
+      setBuildings(rows.filter((b) => b.latitude != null && b.longitude != null));
+      setLoading(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const filtered = useMemo(() => {
