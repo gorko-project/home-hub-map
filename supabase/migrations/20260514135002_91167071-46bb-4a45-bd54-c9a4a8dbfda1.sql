@@ -1,0 +1,1 @@
+ALTER TABLE public.buildings ADD COLUMN dogs_allowed boolean, ADD COLUMN cats_allowed boolean;

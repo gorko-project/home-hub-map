@@ -59,6 +59,8 @@ type BuildingRow = {
   bike_score: number | null;
   building_amenities: string | null;
   unit_features: string | null;
+  dogs_allowed: boolean | null;
+  cats_allowed: boolean | null;
 };
 
 type ScoresState = {
@@ -94,6 +96,8 @@ const blankForm = {
   bike_score: "",
   building_amenities: "",
   unit_features: "",
+  dogs_allowed: "unspecified" as "allowed" | "not_allowed" | "unspecified",
+  cats_allowed: "unspecified" as "allowed" | "not_allowed" | "unspecified",
 };
 
 const blankScores: ScoresState = {
@@ -335,6 +339,8 @@ const Admin = () => {
       bike_score: b.bike_score != null ? String(b.bike_score) : "",
       building_amenities: b.building_amenities ?? "",
       unit_features: b.unit_features ?? "",
+      dogs_allowed: b.dogs_allowed === true ? "allowed" : b.dogs_allowed === false ? "not_allowed" : "unspecified",
+      cats_allowed: b.cats_allowed === true ? "allowed" : b.cats_allowed === false ? "not_allowed" : "unspecified",
     });
     const { data } = await supabase
       .from("building_scores")
@@ -399,6 +405,8 @@ const Admin = () => {
         bike_score: parseIntScore(form.bike_score),
         building_amenities: form.building_amenities || null,
         unit_features: form.unit_features || null,
+        dogs_allowed: form.dogs_allowed === "allowed" ? true : form.dogs_allowed === "not_allowed" ? false : null,
+        cats_allowed: form.cats_allowed === "allowed" ? true : form.cats_allowed === "not_allowed" ? false : null,
       };
 
       let buildingId = editingId;
@@ -625,6 +633,45 @@ const Admin = () => {
                       value={form.unit_features}
                       onChange={(e) => setForm({ ...form, unit_features: e.target.value })}
                     />
+                  </div>
+                </div>
+              </div>
+
+              {/* Pet Policy */}
+              <div className="md:col-span-2 pt-4 border-t">
+                <h3 className="text-base font-semibold mb-3">Pet Policy</h3>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div>
+                    <Label>Dogs</Label>
+                    <Select
+                      value={form.dogs_allowed}
+                      onValueChange={(v: "allowed" | "not_allowed" | "unspecified") =>
+                        setForm({ ...form, dogs_allowed: v })
+                      }
+                    >
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="allowed">Allowed</SelectItem>
+                        <SelectItem value="not_allowed">Not allowed</SelectItem>
+                        <SelectItem value="unspecified">Not specified</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Cats</Label>
+                    <Select
+                      value={form.cats_allowed}
+                      onValueChange={(v: "allowed" | "not_allowed" | "unspecified") =>
+                        setForm({ ...form, cats_allowed: v })
+                      }
+                    >
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="allowed">Allowed</SelectItem>
+                        <SelectItem value="not_allowed">Not allowed</SelectItem>
+                        <SelectItem value="unspecified">Not specified</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
               </div>

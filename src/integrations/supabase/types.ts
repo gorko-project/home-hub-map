@@ -152,8 +152,10 @@ export type Database = {
           admin_notes: string | null
           bike_score: number | null
           building_amenities: string | null
+          cats_allowed: boolean | null
           composite_score: number | null
           created_at: string
+          dogs_allowed: boolean | null
           id: string
           latitude: number | null
           longitude: number | null
@@ -173,8 +175,10 @@ export type Database = {
           admin_notes?: string | null
           bike_score?: number | null
           building_amenities?: string | null
+          cats_allowed?: boolean | null
           composite_score?: number | null
           created_at?: string
+          dogs_allowed?: boolean | null
           id?: string
           latitude?: number | null
           longitude?: number | null
@@ -194,8 +198,10 @@ export type Database = {
           admin_notes?: string | null
           bike_score?: number | null
           building_amenities?: string | null
+          cats_allowed?: boolean | null
           composite_score?: number | null
           created_at?: string
+          dogs_allowed?: boolean | null
           id?: string
           latitude?: number | null
           longitude?: number | null

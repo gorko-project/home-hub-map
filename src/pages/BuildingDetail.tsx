@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, Trash2, Camera, Footprints, BusFront, Bike, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowLeft, Trash2, Camera, Footprints, BusFront, Bike, X, ChevronLeft, ChevronRight, Dog, Cat } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/Spinner";
@@ -37,6 +37,8 @@ type Building = {
   bike_score: number | null;
   building_amenities: string | null;
   unit_features: string | null;
+  dogs_allowed: boolean | null;
+  cats_allowed: boolean | null;
 };
 
 type Scores = {
@@ -142,6 +144,44 @@ const ScoreCircle = ({
   </div>
 );
 
+const PetCard = ({
+  icon: Icon,
+  label,
+  allowed,
+}: {
+  icon: typeof Dog;
+  label: string;
+  allowed: boolean;
+}) => (
+  <div
+    className="flex items-center justify-between gap-2"
+    style={{
+      maxWidth: 140,
+      width: "100%",
+      border: "0.5px solid #d1d5db",
+      borderRadius: 10,
+      padding: "10px 14px",
+    }}
+  >
+    <div className="flex items-center gap-1.5 text-gray-800 dark:text-gray-200" style={{ fontSize: 13, fontWeight: 500 }}>
+      <Icon size={16} />
+      <span>{label}</span>
+    </div>
+    <span
+      style={{
+        backgroundColor: allowed ? "#dcfce7" : "#fee2e2",
+        color: allowed ? "#16a34a" : "#dc2626",
+        fontSize: 11,
+        padding: "2px 8px",
+        borderRadius: 8,
+        fontWeight: 600,
+      }}
+    >
+      {allowed ? "Allowed" : "Not allowed"}
+    </span>
+  </div>
+);
+
 const BuildingDetail = () => {
   const { slug } = useParams<{ slug: string }>();
   const [building, setBuilding] = useState<Building | null>(null);
@@ -182,7 +222,7 @@ const BuildingDetail = () => {
       setLoading(true);
       const { data: b } = await supabase
         .from("buildings")
-        .select("id,name,slug,address,neighborhood,photo_url,composite_score,admin_notes,summary_pros,summary_cons,walk_score,transit_score,bike_score,building_amenities,unit_features")
+        .select("id,name,slug,address,neighborhood,photo_url,composite_score,admin_notes,summary_pros,summary_cons,walk_score,transit_score,bike_score,building_amenities,unit_features,dogs_allowed,cats_allowed")
         .eq("slug", slug)
         .maybeSingle();
       setBuilding(b as Building | null);
@@ -411,38 +451,41 @@ const BuildingDetail = () => {
           </div>
         </section>
 
-        {/* Pros */}
-        {pros.length > 0 && (
+        {/* What Residents Say */}
+        {(pros.length > 0 || cons.length > 0) && (
           <section className="mt-6 pt-6 border-t border-gray-100 dark:border-gray-800">
-            <h2 className="text-[16px] font-medium text-gray-900 dark:text-gray-100 mb-4">Pros</h2>
-            <ul className="space-y-1.5">
-              {pros.map((p, i) => (
-                <li key={i} className="text-[13px] text-gray-500 dark:text-gray-400 leading-[1.55] flex gap-2">
-                  <span className="shrink-0">✅</span>
-                  <span>{p}</span>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
-
-        {/* Cons */}
-        {cons.length > 0 && (
-          <section className="mt-6 pt-6 border-t border-gray-100 dark:border-gray-800">
-            <h2 className="text-[16px] font-medium text-gray-900 dark:text-gray-100 mb-4">Cons</h2>
-            <ul className="space-y-1.5">
-              {cons.map((c, i) => (
-                <li key={i} className="text-[13px] text-gray-500 dark:text-gray-400 leading-[1.55] flex gap-2">
-                  <span className="shrink-0">❌</span>
-                  <span>{c}</span>
-                </li>
-              ))}
-            </ul>
+            <h2 className="text-[16px] font-medium text-gray-900 dark:text-gray-100">What Residents Say</h2>
+            <p className="mt-1 mb-4 text-[12px] italic text-gray-500 dark:text-gray-400">
+              Based on publicly available reviews · past 12 months
+            </p>
+            {pros.length > 0 && (
+              <ul className="space-y-1.5">
+                {pros.map((p, i) => (
+                  <li key={`p-${i}`} className="text-[13px] text-gray-500 dark:text-gray-400 leading-[1.55] flex gap-2">
+                    <span className="shrink-0">✅</span>
+                    <span>{p}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {pros.length > 0 && cons.length > 0 && (
+              <div className="my-4 border-t border-gray-100 dark:border-gray-800" />
+            )}
+            {cons.length > 0 && (
+              <ul className="space-y-1.5">
+                {cons.map((c, i) => (
+                  <li key={`c-${i}`} className="text-[13px] text-gray-500 dark:text-gray-400 leading-[1.55] flex gap-2">
+                    <span className="shrink-0">❌</span>
+                    <span>{c}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </section>
         )}
 
         {/* Facts, features & policies */}
-        {(amenities.length > 0 || unitFeatures.length > 0) && (
+        {(amenities.length > 0 || unitFeatures.length > 0 || building.dogs_allowed != null || building.cats_allowed != null) && (
           <section className="mt-6 pt-6 border-t border-gray-100 dark:border-gray-800">
             <h2 className="text-[16px] font-medium text-gray-900 dark:text-gray-100 mb-4">Facts, features &amp; policies</h2>
             {amenities.length > 0 && (
@@ -476,6 +519,24 @@ const BuildingDetail = () => {
                   ))}
                 </div>
               </div>
+            )}
+            {(building.dogs_allowed != null || building.cats_allowed != null) && (
+              <>
+                {(amenities.length > 0 || unitFeatures.length > 0) && (
+                  <div className="my-4 border-t border-gray-100 dark:border-gray-800" />
+                )}
+                <div className={amenities.length === 0 && unitFeatures.length === 0 ? "" : "mt-4"}>
+                  <div className="text-[12px] font-medium text-gray-500 dark:text-gray-400 mb-2">Pet policy</div>
+                  <div className="flex flex-wrap gap-2">
+                    {building.dogs_allowed != null && (
+                      <PetCard icon={Dog} label="Dogs" allowed={building.dogs_allowed} />
+                    )}
+                    {building.cats_allowed != null && (
+                      <PetCard icon={Cat} label="Cats" allowed={building.cats_allowed} />
+                    )}
+                  </div>
+                </div>
+              </>
             )}
           </section>
         )}
