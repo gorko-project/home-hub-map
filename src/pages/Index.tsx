@@ -95,6 +95,7 @@ type LatLng = { lat: number; lng: number };
 
 const Index = () => {
   const [buildings, setBuildings] = useState<Building[]>([]);
+  const [coords, setCoords] = useState<Record<string, LatLng>>({});
   const [selected, setSelected] = useState<Building | null>(null);
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
