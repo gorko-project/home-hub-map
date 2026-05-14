@@ -46,8 +46,6 @@ type BuildingRow = {
   slug: string;
   address: string | null;
   neighborhood: string | null;
-  latitude: number | null;
-  longitude: number | null;
   status: string;
   admin_notes: string | null;
   summary_pros: string | null;
