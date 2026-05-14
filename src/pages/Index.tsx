@@ -165,7 +165,7 @@ const Index = () => {
           </div>
         )}
 
-        <APIProvider apiKey={GOOGLE_MAPS_API_KEY} libraries={["places"]}>
+        <APIProvider apiKey={GOOGLE_MAPS_API_KEY} libraries={["places", "geocoding"]}>
           <SearchBar
             query={query}
             setQuery={setQuery}
