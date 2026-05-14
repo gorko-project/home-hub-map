@@ -144,6 +144,44 @@ const ScoreCircle = ({
   </div>
 );
 
+const PetCard = ({
+  icon: Icon,
+  label,
+  allowed,
+}: {
+  icon: typeof Dog;
+  label: string;
+  allowed: boolean;
+}) => (
+  <div
+    className="flex items-center justify-between gap-2"
+    style={{
+      maxWidth: 140,
+      width: "100%",
+      border: "0.5px solid #d1d5db",
+      borderRadius: 10,
+      padding: "10px 14px",
+    }}
+  >
+    <div className="flex items-center gap-1.5 text-gray-800 dark:text-gray-200" style={{ fontSize: 13, fontWeight: 500 }}>
+      <Icon size={16} />
+      <span>{label}</span>
+    </div>
+    <span
+      style={{
+        backgroundColor: allowed ? "#dcfce7" : "#fee2e2",
+        color: allowed ? "#16a34a" : "#dc2626",
+        fontSize: 11,
+        padding: "2px 8px",
+        borderRadius: 8,
+        fontWeight: 600,
+      }}
+    >
+      {allowed ? "Allowed" : "Not allowed"}
+    </span>
+  </div>
+);
+
 const BuildingDetail = () => {
   const { slug } = useParams<{ slug: string }>();
   const [building, setBuilding] = useState<Building | null>(null);
