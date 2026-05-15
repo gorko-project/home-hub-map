@@ -39,6 +39,7 @@ type Building = {
   unit_features: string | null;
   dogs_allowed: boolean | null;
   cats_allowed: boolean | null;
+  pet_notes: string | null;
 };
 
 type Scores = {
