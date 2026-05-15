@@ -39,6 +39,7 @@ type Building = {
   unit_features: string | null;
   dogs_allowed: boolean | null;
   cats_allowed: boolean | null;
+  pet_notes: string | null;
 };
 
 type Scores = {
@@ -222,7 +223,7 @@ const BuildingDetail = () => {
       setLoading(true);
       const { data: b } = await supabase
         .from("buildings")
-        .select("id,name,slug,address,neighborhood,photo_url,composite_score,admin_notes,summary_pros,summary_cons,walk_score,transit_score,bike_score,building_amenities,unit_features,dogs_allowed,cats_allowed")
+        .select("id,name,slug,address,neighborhood,photo_url,composite_score,admin_notes,summary_pros,summary_cons,walk_score,transit_score,bike_score,building_amenities,unit_features,dogs_allowed,cats_allowed,pet_notes")
         .eq("slug", slug)
         .maybeSingle();
       setBuilding(b as Building | null);
@@ -552,6 +553,11 @@ const BuildingDetail = () => {
                       <PetCard icon={Cat} label="Cats" allowed={building.cats_allowed} />
                     )}
                   </div>
+                  {building.pet_notes && (
+                    <p className="mt-3 text-[13px] text-gray-500 dark:text-gray-400 leading-[1.55]">
+                      {building.pet_notes}
+                    </p>
+                  )}
                 </div>
               </>
             )}
