@@ -290,26 +290,46 @@ const BuildingDetail = () => {
     if (!userId || !building) return;
     if (form.overall < 1) return toast.error("Please select an overall star rating");
     setSubmitting(true);
-    const payload = {
-      building_id: building.id,
-      user_id: userId,
-      overall: form.overall,
-      management: form.management || null,
-      quietness: form.quietness || null,
-      value_for_money: form.value_for_money || null,
-      location: form.location || null,
-      building_condition: form.building_condition || null,
-      comment: form.comment.trim() || null,
-      tenancy_period: form.tenancy_period.trim() || null,
-    };
-    const { error } = myReview
-      ? await supabase.from("building_reviews").update(payload).eq("id", myReview.id)
-      : await supabase.from("building_reviews").insert(payload);
-    setSubmitting(false);
-    if (error) return toast.error(error.message);
-    toast.success(myReview ? "Review updated" : "Review submitted");
-    setEditing(false);
-    loadReviews(building.id);
+    try {
+      const payload = {
+        building_id: building.id,
+        user_id: userId,
+        overall: form.overall,
+        management: form.management || null,
+        quietness: form.quietness || null,
+        value_for_money: form.value_for_money || null,
+        location: form.location || null,
+        building_condition: form.building_condition || null,
+        comment: form.comment.trim() || null,
+        tenancy_period: form.tenancy_period.trim() || null,
+      };
+      console.log("[review-debug] submitting", { isUpdate: !!myReview, reviewId: myReview?.id, userId, payload });
+      const { data, error } = myReview
+        ? await supabase
+            .from("building_reviews")
+            .update(payload)
+            .eq("id", myReview.id)
+            .eq("user_id", userId)
+            .select()
+        : await supabase.from("building_reviews").insert(payload).select();
+      console.log("[review-debug] result", { data, error });
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+      if (myReview && (!data || data.length === 0)) {
+        toast.error("Review not updated — no matching row found (id/user mismatch or RLS).");
+        return;
+      }
+      toast.success(myReview ? "Review updated" : "Review submitted");
+      setEditing(false);
+      await loadReviews(building.id);
+    } catch (err: any) {
+      console.error("[review-debug] exception", err);
+      toast.error(err?.message ?? "Unexpected error updating review");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const deleteReview = async (id: string) => {
