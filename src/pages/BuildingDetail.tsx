@@ -475,9 +475,6 @@ const BuildingDetail = () => {
         {(pros.length > 0 || cons.length > 0) && (
           <section className="mt-6 pt-6 border-t border-gray-100 dark:border-gray-800">
             <h2 className="text-[16px] font-medium text-gray-900 dark:text-gray-100">What Residents Say</h2>
-            <p className="mt-1 mb-4 text-[12px] italic text-gray-500 dark:text-gray-400">
-              Based on publicly available reviews · past 12 months
-            </p>
             {pros.length > 0 && (
               <ul className="space-y-1.5">
                 {pros.map((p, i) => (
