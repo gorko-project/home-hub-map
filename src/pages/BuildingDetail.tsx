@@ -553,6 +553,11 @@ const BuildingDetail = () => {
                       <PetCard icon={Cat} label="Cats" allowed={building.cats_allowed} />
                     )}
                   </div>
+                  {building.pet_notes && (
+                    <p className="mt-3 text-[13px] text-gray-500 dark:text-gray-400 leading-[1.55]">
+                      {building.pet_notes}
+                    </p>
+                  )}
                 </div>
               </>
             )}
