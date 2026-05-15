@@ -223,7 +223,7 @@ const BuildingDetail = () => {
       setLoading(true);
       const { data: b } = await supabase
         .from("buildings")
-        .select("id,name,slug,address,neighborhood,photo_url,composite_score,admin_notes,summary_pros,summary_cons,walk_score,transit_score,bike_score,building_amenities,unit_features,dogs_allowed,cats_allowed")
+        .select("id,name,slug,address,neighborhood,photo_url,composite_score,admin_notes,summary_pros,summary_cons,walk_score,transit_score,bike_score,building_amenities,unit_features,dogs_allowed,cats_allowed,pet_notes")
         .eq("slug", slug)
         .maybeSingle();
       setBuilding(b as Building | null);
