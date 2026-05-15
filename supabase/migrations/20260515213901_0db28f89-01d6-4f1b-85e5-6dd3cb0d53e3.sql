@@ -1,0 +1,1 @@
+ALTER TABLE public.buildings ADD COLUMN pet_notes TEXT NULL;

@@ -161,6 +161,7 @@ export type Database = {
           longitude: number | null
           name: string
           neighborhood: string | null
+          pet_notes: string | null
           photo_url: string | null
           slug: string
           status: string
@@ -184,6 +185,7 @@ export type Database = {
           longitude?: number | null
           name: string
           neighborhood?: string | null
+          pet_notes?: string | null
           photo_url?: string | null
           slug: string
           status?: string
@@ -207,6 +209,7 @@ export type Database = {
           longitude?: number | null
           name?: string
           neighborhood?: string | null
+          pet_notes?: string | null
           photo_url?: string | null
           slug?: string
           status?: string
