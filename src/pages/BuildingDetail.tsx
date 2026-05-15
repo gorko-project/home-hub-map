@@ -300,8 +300,8 @@ const BuildingDetail = () => {
         value_for_money: form.value_for_money || null,
         location: form.location || null,
         building_condition: form.building_condition || null,
-        comment: form.comment.trim() || null,
-        tenancy_period: form.tenancy_period.trim() || null,
+        comment: (form.comment ?? '').trim() || null,
+        tenancy_period: (form.tenancy_period ?? '').trim() || null,
       };
       console.log("[review-debug] submitting", { isUpdate: !!myReview, reviewId: myReview?.id, userId, payload });
       const { data, error } = myReview
