@@ -109,32 +109,47 @@ export type Database = {
         Row: {
           building_id: string
           condition: number | null
+          condition_rationale: string | null
           created_at: string
           id: string
           location: number | null
+          location_rationale: string | null
           management: number | null
+          management_rationale: string | null
           noise: number | null
+          noise_rationale: string | null
           value: number | null
+          value_rationale: string | null
         }
         Insert: {
           building_id: string
           condition?: number | null
+          condition_rationale?: string | null
           created_at?: string
           id?: string
           location?: number | null
+          location_rationale?: string | null
           management?: number | null
+          management_rationale?: string | null
           noise?: number | null
+          noise_rationale?: string | null
           value?: number | null
+          value_rationale?: string | null
         }
         Update: {
           building_id?: string
           condition?: number | null
+          condition_rationale?: string | null
           created_at?: string
           id?: string
           location?: number | null
+          location_rationale?: string | null
           management?: number | null
+          management_rationale?: string | null
           noise?: number | null
+          noise_rationale?: string | null
           value?: number | null
+          value_rationale?: string | null
         }
         Relationships: [
           {

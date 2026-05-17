@@ -48,6 +48,11 @@ type Scores = {
   value: number | null;
   location: number | null;
   condition: number | null;
+  management_rationale: string | null;
+  noise_rationale: string | null;
+  value_rationale: string | null;
+  location_rationale: string | null;
+  condition_rationale: string | null;
 };
 
 type Photo = { id: string; url: string; is_primary: boolean; display_order: number };
@@ -108,17 +113,40 @@ const splitTags = (s: string | null) =>
     .map((x) => x.trim())
     .filter(Boolean);
 
-const RatingRow = ({ label, score }: { label: string; score: number | null }) => (
-  <div className="flex items-center justify-between py-1.5">
-    <span className="text-[13px] text-gray-700 dark:text-gray-300">{label}</span>
-    <div className="flex items-center gap-2">
-      <StarsDisplay value={score ?? 0} size={14} />
-      <span className="text-[13px] font-medium tabular-nums text-[#f97316] w-8 text-right">
-        {score != null ? Number(score).toFixed(1) : "—"}
-      </span>
+const CategoryRow = ({
+  label,
+  score,
+  rationale,
+}: {
+  label: string;
+  score: number | null;
+  rationale?: string | null;
+}) => {
+  const [open, setOpen] = useState(false);
+  const hasTip = !!rationale?.trim();
+
+  return (
+    <div
+      className="relative flex items-center justify-between py-1.5"
+      onMouseEnter={() => hasTip && setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
+      onClick={() => hasTip && setOpen((o) => !o)}
+    >
+      <span className="text-[13px] text-gray-700 dark:text-gray-300">{label}</span>
+      <div className="flex items-center gap-2">
+        <StarsDisplay value={score ?? 0} size={14} />
+        <span className="text-[13px] font-medium tabular-nums text-[#f97316] w-8 text-right">
+          {score != null ? Number(score).toFixed(1) : "—"}
+        </span>
+      </div>
+      {open && hasTip && (
+        <div className="absolute z-50 left-1/2 -translate-x-1/2 bottom-full mb-2 max-w-[280px] rounded-md border bg-popover p-3 text-[12px] text-popover-foreground shadow-md">
+          {rationale}
+        </div>
+      )}
     </div>
-  </div>
-);
+  );
+};
 
 const ScoreCircle = ({
   icon: Icon,
@@ -231,7 +259,7 @@ const BuildingDetail = () => {
         const [{ data: s }, { data: ph }] = await Promise.all([
           supabase
             .from("building_scores")
-            .select("management,noise,value,location,condition")
+            .select("management,noise,value,location,condition,management_rationale,noise_rationale,value_rationale,location_rationale,condition_rationale")
             .eq("building_id", b.id)
             .maybeSingle(),
           supabase
@@ -453,8 +481,13 @@ const BuildingDetail = () => {
             <div className={showWalk ? "md:pr-6 md:border-r md:border-gray-100 md:dark:border-gray-800" : ""}>
               <h2 className="text-[16px] font-medium text-gray-900 dark:text-gray-100 mb-4">Rating</h2>
               <div className="divide-y divide-gray-100 dark:divide-gray-800">
-                {CATEGORIES.map((c) => (
-                  <RatingRow key={c.key} label={c.label} score={scores ? (scores[c.key] as number | null) : null} />
+{CATEGORIES.map((c) => (
+                  <CategoryRow
+                    key={c.key}
+                    label={c.label}
+                    score={scores ? (scores[c.key] as number | null) : null}
+                    rationale={scores ? (scores[`${c.key}_rationale` as keyof Scores] as string | null) : null}
+                  />
                 ))}
               </div>
             </div>
