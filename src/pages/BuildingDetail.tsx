@@ -481,8 +481,13 @@ const BuildingDetail = () => {
             <div className={showWalk ? "md:pr-6 md:border-r md:border-gray-100 md:dark:border-gray-800" : ""}>
               <h2 className="text-[16px] font-medium text-gray-900 dark:text-gray-100 mb-4">Rating</h2>
               <div className="divide-y divide-gray-100 dark:divide-gray-800">
-                {CATEGORIES.map((c) => (
-                  <RatingRow key={c.key} label={c.label} score={scores ? (scores[c.key] as number | null) : null} />
+{CATEGORIES.map((c) => (
+                  <CategoryRow
+                    key={c.key}
+                    label={c.label}
+                    score={scores ? (scores[c.key] as number | null) : null}
+                    rationale={scores ? (scores[`${c.key}_rationale` as keyof Scores] as string | null) : null}
+                  />
                 ))}
               </div>
             </div>
