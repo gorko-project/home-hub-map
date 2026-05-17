@@ -48,6 +48,11 @@ type Scores = {
   value: number | null;
   location: number | null;
   condition: number | null;
+  management_rationale: string | null;
+  noise_rationale: string | null;
+  value_rationale: string | null;
+  location_rationale: string | null;
+  condition_rationale: string | null;
 };
 
 type Photo = { id: string; url: string; is_primary: boolean; display_order: number };
