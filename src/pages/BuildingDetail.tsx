@@ -113,17 +113,40 @@ const splitTags = (s: string | null) =>
     .map((x) => x.trim())
     .filter(Boolean);
 
-const RatingRow = ({ label, score }: { label: string; score: number | null }) => (
-  <div className="flex items-center justify-between py-1.5">
-    <span className="text-[13px] text-gray-700 dark:text-gray-300">{label}</span>
-    <div className="flex items-center gap-2">
-      <StarsDisplay value={score ?? 0} size={14} />
-      <span className="text-[13px] font-medium tabular-nums text-[#f97316] w-8 text-right">
-        {score != null ? Number(score).toFixed(1) : "—"}
-      </span>
+const CategoryRow = ({
+  label,
+  score,
+  rationale,
+}: {
+  label: string;
+  score: number | null;
+  rationale?: string | null;
+}) => {
+  const [open, setOpen] = useState(false);
+  const hasTip = !!rationale?.trim();
+
+  return (
+    <div
+      className="relative flex items-center justify-between py-1.5"
+      onMouseEnter={() => hasTip && setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
+      onClick={() => hasTip && setOpen((o) => !o)}
+    >
+      <span className="text-[13px] text-gray-700 dark:text-gray-300">{label}</span>
+      <div className="flex items-center gap-2">
+        <StarsDisplay value={score ?? 0} size={14} />
+        <span className="text-[13px] font-medium tabular-nums text-[#f97316] w-8 text-right">
+          {score != null ? Number(score).toFixed(1) : "—"}
+        </span>
+      </div>
+      {open && hasTip && (
+        <div className="absolute z-50 left-1/2 -translate-x-1/2 bottom-full mb-2 max-w-[280px] rounded-md border bg-popover p-3 text-[12px] text-popover-foreground shadow-md">
+          {rationale}
+        </div>
+      )}
     </div>
-  </div>
-);
+  );
+};
 
 const ScoreCircle = ({
   icon: Icon,
