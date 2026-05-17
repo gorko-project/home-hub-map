@@ -259,7 +259,7 @@ const BuildingDetail = () => {
         const [{ data: s }, { data: ph }] = await Promise.all([
           supabase
             .from("building_scores")
-            .select("management,noise,value,location,condition")
+            .select("management,noise,value,location,condition,management_rationale,noise_rationale,value_rationale,location_rationale,condition_rationale")
             .eq("building_id", b.id)
             .maybeSingle(),
           supabase
