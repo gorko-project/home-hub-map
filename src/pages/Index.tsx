@@ -225,7 +225,7 @@ const Index = () => {
           >
             <MapInstanceBridge onReady={setMapInstance} />
             <SearchPinMarker position={searchPin} />
-            {!selected && buildings.map((b) => {
+            {buildings.map((b) => {
               const z = zoom;
               let iconSize = 10, scoreSize = 11, padding = "3px 7px", radius = 6;
               if (z >= 15 && z <= 16) { iconSize = 12; scoreSize = 13; padding = "4px 9px"; radius = 7; }
