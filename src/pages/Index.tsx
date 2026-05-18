@@ -232,13 +232,6 @@ const Index = () => {
               else if (z >= 17 && z <= 18) { iconSize = 14; scoreSize = 15; padding = "5px 11px"; radius = 8; }
               else if (z > 18) { iconSize = 16; scoreSize = 17; padding = "6px 13px"; radius = 9; }
 
-              let nameSize = 0;
-              if (z === 15) nameSize = 13;
-              else if (z === 16) nameSize = 15;
-              else if (z === 17) nameSize = 17;
-              else if (z >= 18) nameSize = 19;
-              const showName = nameSize > 0;
-
               return (
                 <HTMLMarker
                   key={b.id}
@@ -247,21 +240,6 @@ const Index = () => {
                   zIndex={1000}
                 >
                   <div className="cursor-pointer flex flex-col items-center">
-                    {showName && (
-                      <span
-                        className="whitespace-nowrap max-w-[260px] truncate text-center"
-                        style={{
-                          fontSize: nameSize,
-                          fontWeight: 700,
-                          color: "#1a1a1a",
-                          textShadow: "0 1px 3px rgba(255,255,255,1)",
-                          marginBottom: 4,
-                          transition: "all 0.15s ease",
-                        }}
-                      >
-                        {b.name}
-                      </span>
-                    )}
                     <div
                       className="bg-white flex items-center gap-1 hover:scale-105"
                       style={{
